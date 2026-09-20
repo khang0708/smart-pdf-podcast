@@ -1,0 +1,27 @@
+{
+  "short_name": "PDF Podcast",
+  "name": "Smart PDF Reader & Podcast TTS",
+  "description": "Đọc sách PDF và nghe tự động dạng podcast với Text-to-Speech",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "display": "standalone",
+  "orientation": "portrait"
+}
