@@ -2,6 +2,9 @@
 
 Ứng dụng đọc sách PDF thông minh kết hợp tính năng nghe âm thanh tự động (Text-to-Speech) chuẩn Podcast, hỗ trợ đầy đủ quản lý file sách, ghi nhớ lịch sử đọc dở để đọc tiếp và có thể cài đặt trực tiếp lên điện thoại (Android & iOS).
 
+🌐 **Trải nghiệm trực tiếp trên Web / Mobile**: [https://smart-pdf-podcast-reader.vercel.app](https://smart-pdf-podcast-reader.vercel.app)  
+📦 **Kho lưu trữ GitHub**: [https://github.com/khang0708/smart-pdf-podcast](https://github.com/khang0708/smart-pdf-podcast)
+
 ---
 
 ## 🌟 Các tính năng nổi bật
