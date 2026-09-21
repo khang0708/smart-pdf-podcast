@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Favicon & Brand Showcase - Aurora Reader</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #090a0f;
+      color: #ede8df;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 780px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .header h1 {
+      font-family: 'Literata', serif;
+      font-size: 24px;
+      color: #f7efe4;
+      letter-spacing: 0.05em;
+    }
+    .header p {
+      font-size: 13px;
+      color: #a89f91;
+      margin-top: 4px;
+    }
+    .card {
+      background: #11141c;
+      border: 1px solid #222736;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #c97a3e;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* Browser Mockup */
+    .browser-frame {
+      background: #1e222d;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #2d3345;
+    }
+    .browser-toolbar {
+      background: #161822;
+      padding: 10px 14px 0;
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      border-bottom: 1px solid #272d3d;
+    }
+    .browser-dots {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .browser-tab {
+      background: #1e222d;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: #f3efe6;
+      font-weight: 500;
+      border: 1px solid #2d3345;
+      border-bottom: none;
+      max-width: 260px;
+    }
+    .browser-tab img {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+    }
+    .tab-close {
+      margin-left: auto;
+      opacity: 0.5;
+      font-size: 11px;
+    }
+    .browser-body {
+      padding: 16px;
+      font-size: 12px;
+      color: #8f9ba8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    /* Sizes grid */
+    .sizes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 16px;
+      text-align: center;
+    }
+    .size-box {
+      background: #171a24;
+      border: 1px solid #262c3e;
+      border-radius: 12px;
+      padding: 16px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .size-box .label {
+      font-size: 11px;
+      color: #9da3b4;
+      font-family: monospace;
+    }
+    /* Mobile App Icon Preview */
+    .app-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .app-icon-large {
+      width: 88px;
+      height: 88px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .app-info h3 {
+      font-size: 16px;
+      color: #f7efe4;
+      margin-bottom: 4px;
+    }
+    .app-info p {
+      font-size: 12px;
+      color: #9da3b4;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Aurora Reader • Brand Favicon</h1>
+      <p>Nhận diện thương hiệu phong cách The Atelier Hybrid</p>
+    </div>
+
+    <!-- Browser Tab Simulation -->
+    <div class="card">
+      <div class="card-title">🌐 Mô Phỏng Favicon Trên Tab Trình Duyệt (18px)</div>
+      <div class="browser-frame">
+        <div class="browser-toolbar">
+          <div class="browser-dots">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+          </div>
+          <div class="browser-tab">
+            <img src="/icon.svg" alt="Favicon" />
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Aurora Reader • E-Book Reader</span>
+            <span class="tab-close">✕</span>
+          </div>
+        </div>
+        <div class="browser-body">
+          <span>URL: https://aurorareader.app/library</span>
+          <span style="color: #4ade80;">● Đang hoạt động</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Different Display Resolutions -->
+    <div class="card">
+      <div class="card-title">📐 Độ Sắc Nét Ở Các Kích Thước Favicon Khác Nhau</div>
+      <div class="sizes-grid">
+        <div class="size-box">
+          <img src="/icon.svg" style="width: 16px; height: 16px;" alt="16x16" />
+          <span class="label">16 × 16 (Tab)</span>
+        </div>
+        <div class="size-box">
+          <img src="/icon.svg" style="width: 32px; height: 32px;" alt="32x32" />
+          <span class="label">32 × 32 (Retina)</span>
+        </div>
+        <div class="size-box">
+          <img src="/icon.svg" style="width: 48px; height: 48px;" alt="48x48" />
+          <span class="label">48 × 48 (Bookmark)</span>
+        </div>
+        <div class="size-box">
+          <img src="/icon.svg" style="width: 64px; height: 64px;" alt="64x64" />
+          <span class="label">64 × 64 (Dock)</span>
+        </div>
+        <div class="size-box">
+          <img src="/icon.svg" style="width: 96px; height: 96px;" alt="96x96" />
+          <span class="label">96 × 96 (PWA)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Icon Presentation -->
+    <div class="card">
+      <div class="card-title">📱 Biểu Tượng Ứng Dụng Màn Hình Chính (Mobile App Icon)</div>
+      <div class="app-preview-row">
+        <img src="/icon.svg" class="app-icon-large" alt="Large App Icon" />
+        <div class="app-info">
+          <h3>Aurora Reader • SaaS Edition</h3>
+          <p>Thiết kế dạng Squircle tối ưu cho iOS Home Screen, Android Adaptive Icon và Chrome PWA Desktop. Biểu tượng quyển sách mở cùng ngôi sao dẫn đường màu Terracotta & Obsidian sang trọng.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

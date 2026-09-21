@@ -8,7 +8,7 @@ export default defineConfig({
     include: ['pdfjs-dist', 'localforage'],
   },
   server: {
-    port: 5173,
+    port: 5174,
     host: true,
     allowedHosts: true
   }

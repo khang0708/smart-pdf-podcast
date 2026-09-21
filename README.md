@@ -38,6 +38,18 @@
   - Chọn giọng đọc có sẵn trên thiết bị (Tiếng Việt, Tiếng Anh,...).
   - **Hẹn giờ tắt (Sleep Timer)**: 5 phút, 15 phút, 30 phút, 45 phút, 60 phút — cực kỳ tiện lợi khi nghe sách trước khi đi ngủ.
 
+### 4. Đồng bộ Dữ liệu Đa Thiết bị (Supabase Cloud DB & Storage) ☁️
+- **Đồng bộ tiến độ đọc**: Chuyển đổi đọc sách mượt mà giữa PC và điện thoại — mở app là đọc tiếp ngay trang vừa dừng ở thiết bị kia.
+- **2 Chế độ kết nối linh hoạt**:
+  - **Mã phòng đồng bộ (Sync Room PIN)**: Nhập cùng một mã PIN (ví dụ: `READ-8888`) trên 2 thiết bị để đồng bộ tức thì, không cần đăng ký tài khoản.
+  - **Tài khoản Supabase**: Hỗ trợ đăng ký/đăng nhập Email & Mật khẩu bảo mật với Row Level Security (RLS).
+- **Kiến trúc Offline-first**: Lưu dữ liệu cục bộ trên máy với IndexedDB, tự động đồng bộ khi có kết nối mạng.
+- **Đồng bộ File PDF**: Tự động tải file PDF lên Supabase Storage và tải về khi mở sách trên thiết bị thứ 2.
+
+### 5. Nhập sách Trực tiếp từ Google Drive 📁
+- **Google Drive Picker API**: Duyệt và chọn file PDF trực tiếp từ tài khoản Google Drive của bạn ngay trong ứng dụng.
+- **Dán liên kết chia sẻ (Direct Link Import)**: Dán link Google Drive chia sẻ công khai để tải và mở sách chỉ với 1 click.
+
 ---
 
 ## 📱 Hướng dẫn Cài đặt & Chạy trên Điện thoại

@@ -32,7 +32,8 @@ export const PdfService = {
     containerWidth: number = 0,
     userZoom: number = 1.0
   ): Promise<{ width: number; height: number }> {
-    const page = await pdfDoc.getPage(pageNumber);
+    const safePage = Math.max(1, Math.min(pageNumber, pdfDoc.numPages));
+    const page = await pdfDoc.getPage(safePage);
     const unscaledViewport = page.getViewport({ scale: 1.0 });
 
     // Calculate fit-to-width scale
@@ -79,7 +80,8 @@ export const PdfService = {
     pdfDoc: pdfjsLib.PDFDocumentProxy,
     pageNumber: number
   ): Promise<PageTextData> {
-    const page = await pdfDoc.getPage(pageNumber);
+    const safePage = Math.max(1, Math.min(pageNumber, pdfDoc.numPages));
+    const page = await pdfDoc.getPage(safePage);
     const textContent = await page.getTextContent();
     
     // Filter valid text items with spatial coordinates

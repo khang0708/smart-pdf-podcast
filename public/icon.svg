@@ -1,43 +1,155 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4f46e5" />
-      <stop offset="50%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#8b5cf6" />
+    <!-- Background Dark Obsidian Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141822" />
+      <stop offset="45%" stop-color="#0d1016" />
+      <stop offset="100%" stop-color="#07090d" />
     </linearGradient>
-    <linearGradient id="glow" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3" />
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+
+    <!-- Outer Rim Luxury Atelier Accent -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f39c5a" stop-opacity="0.9" />
+      <stop offset="35%" stop-color="#c97a3e" stop-opacity="0.6" />
+      <stop offset="70%" stop-color="#2c3244" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#e08846" stop-opacity="0.75" />
     </linearGradient>
+
+    <!-- Ambient Aurora Glow behind star -->
+    <radialGradient id="auroraGlow" cx="50%" cy="30%" r="55%">
+      <stop offset="0%" stop-color="#f39c5a" stop-opacity="0.45" />
+      <stop offset="40%" stop-color="#c97a3e" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#0d1016" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Radiant Aurora Star Gradient -->
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#fff2db" />
+      <stop offset="65%" stop-color="#f7a35a" />
+      <stop offset="100%" stop-color="#c97a3e" />
+    </linearGradient>
+
+    <!-- Terracotta Ribbon Gradient -->
+    <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f7a868" />
+      <stop offset="40%" stop-color="#d47935" />
+      <stop offset="100%" stop-color="#914517" />
+    </linearGradient>
+
+    <!-- Left Book Page Gradient (Linen Ivory) -->
+    <linearGradient id="leftPageGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#eae2d4" />
+      <stop offset="65%" stop-color="#fcf9f2" />
+      <stop offset="100%" stop-color="#d6cab6" />
+    </linearGradient>
+
+    <!-- Right Book Page Gradient (Linen Ivory) -->
+    <linearGradient id="rightPageGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d6cab6" />
+      <stop offset="35%" stop-color="#fcf9f2" />
+      <stop offset="100%" stop-color="#eae2d4" />
+    </linearGradient>
+
+    <!-- Under-pages / Book Cover Base (3D Depth) -->
+    <linearGradient id="basePageGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c97a3e" />
+      <stop offset="100%" stop-color="#5a2e10" />
+    </linearGradient>
+
+    <!-- Luxury Soft Drop Shadow -->
+    <filter id="bookShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
+    </filter>
+
+    <!-- Star Glow Filter -->
+    <filter id="starGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
   </defs>
 
-  <!-- App Rounded Icon Background -->
-  <rect width="512" height="512" rx="128" fill="url(#bg)" />
-  <rect width="512" height="512" rx="128" fill="url(#glow)" />
+  <!-- Base App Squircle Canvas (Full-bleed with rounded corners) -->
+  <rect width="512" height="512" rx="116" fill="url(#bgGrad)" />
+  <!-- Inner Rim Border -->
+  <rect x="5" y="5" width="502" height="502" rx="112" fill="none" stroke="url(#borderGrad)" stroke-width="7" />
 
-  <!-- Stylized Book Pages -->
-  <path d="M128 360 C180 340, 230 350, 256 368 C282 350, 332 340, 384 360 L384 190 C332 170, 282 180, 256 198 C230 180, 180 170, 128 190 Z" 
-        fill="#ffffff" 
-        opacity="0.95" 
-        filter="drop-shadow(0px 8px 16px rgba(0,0,0,0.25))" />
+  <!-- Ambient Aurora Radial Glow -->
+  <circle cx="256" cy="190" r="230" fill="url(#auroraGlow)" />
 
-  <path d="M256 198 L256 368" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round" />
+  <!-- Book Base 3D Binding / Hardcover Foundation -->
+  <path d="M 80, 368 
+           C 136, 386 208, 382 256, 408 
+           C 304, 382 376, 386 432, 368 
+           L 436, 386 
+           C 378, 404 306, 400 256, 428 
+           C 206, 400 134, 404 76, 386 Z" 
+        fill="url(#basePageGrad)" 
+        opacity="0.9" />
 
-  <!-- Stylized Podcast Headphones Arch over Book -->
-  <path d="M140 260 C140 160, 372 160, 372 260" 
-        fill="none" 
-        stroke="#fcd34d" 
-        stroke-width="28" 
-        stroke-linecap="round" 
-        filter="drop-shadow(0px 6px 12px rgba(0,0,0,0.3))" />
+  <!-- Book Main Spine & Sculpted Pages with Drop Shadow -->
+  <g filter="url(#bookShadow)">
+    <!-- Left Page Wing -->
+    <path d="M 256, 226 
+             C 212, 190 136, 188 80, 208 
+             C 73, 211 68, 218 68, 226 
+             L 68, 350 
+             C 68, 360 76, 367 86, 363 
+             C 136, 345 212, 348 256, 386 Z" 
+          fill="url(#leftPageGrad)" />
 
-  <!-- Headphone Ear Cups -->
-  <rect x="120" y="240" width="36" height="64" rx="18" fill="#fbbf24" />
-  <rect x="356" y="240" width="36" height="64" rx="18" fill="#fbbf24" />
+    <!-- Right Page Wing -->
+    <path d="M 256, 226 
+             C 300, 190 376, 188 432, 208 
+             C 439, 211 444, 218 444, 226 
+             L 444, 350 
+             C 444, 360 436, 367 426, 363 
+             C 376, 345 300, 348 256, 386 Z" 
+          fill="url(#rightPageGrad)" />
 
-  <!-- Equalizer waves inside book -->
-  <circle cx="210" cy="270" r="6" fill="#6366f1" />
-  <circle cx="230" cy="260" r="6" fill="#6366f1" />
-  <circle cx="282" cy="260" r="6" fill="#6366f1" />
-  <circle cx="302" cy="270" r="6" fill="#6366f1" />
+    <!-- Center Spine Crease Line -->
+    <path d="M 256, 226 L 256, 386" stroke="#bdae96" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Stylized Book Text Lines - Left Page -->
+    <line x1="112" y1="256" x2="220" y2="244" stroke="#c4b59f" stroke-width="5.5" stroke-linecap="round" />
+    <line x1="108" y1="286" x2="220" y2="274" stroke="#c4b59f" stroke-width="5.5" stroke-linecap="round" />
+    <line x1="116" y1="316" x2="198" y2="306" stroke="#c97a3e" stroke-width="5.5" stroke-linecap="round" opacity="0.9" />
+
+    <!-- Stylized Book Text Lines - Right Page -->
+    <line x1="292" y1="244" x2="400" y2="256" stroke="#c4b59f" stroke-width="5.5" stroke-linecap="round" />
+    <line x1="292" y1="274" x2="404" y2="286" stroke="#c4b59f" stroke-width="5.5" stroke-linecap="round" />
+    <line x1="314" y1="306" x2="396" y2="316" stroke="#c4b59f" stroke-width="5.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Terracotta Bookmark Ribbon (Floating down center) -->
+  <path d="M 243, 226 
+           L 243, 426 
+           L 256, 412 
+           L 269, 426 
+           L 269, 226 Z" 
+        fill="url(#ribbonGrad)" 
+        filter="drop-shadow(0px 4px 8px rgba(0,0,0,0.45))" />
+
+  <!-- Rising Beam of Knowledge -->
+  <line x1="256" y1="216" x2="256" y2="168" stroke="#f39c5a" stroke-width="3.5" stroke-linecap="round" opacity="0.75" stroke-dasharray="3 4" />
+
+  <!-- Guiding Aurora Star (Radiant 4-point Diamond) -->
+  <g filter="url(#starGlow)">
+    <!-- Radiant Outer Star Body -->
+    <path d="M 256, 60 
+             Q 256, 124 192, 124 
+             Q 256, 124 256, 188 
+             Q 256, 124 320, 124 
+             Q 256, 124 256, 60 Z" 
+          fill="url(#starGrad)" 
+          filter="drop-shadow(0px 0px 18px rgba(243, 156, 90, 0.9))" />
+
+    <!-- Brilliant Pure White Center Core -->
+    <circle cx="256" cy="124" r="7.5" fill="#ffffff" />
+  </g>
+
+  <!-- Side Sparkles (Wisdom Sparks) -->
+  <path d="M 148, 116 Q 148, 130 134, 130 Q 148, 130 148, 144 Q 148, 130 162, 130 Q 148, 130 148, 116 Z" fill="#ffd599" opacity="0.9" />
+  <path d="M 364, 116 Q 364, 130 350, 130 Q 364, 130 364, 144 Q 364, 130 378, 130 Q 364, 130 364, 116 Z" fill="#ffd599" opacity="0.9" />
+  <circle cx="256" cy="38" r="3.5" fill="#ffe2b8" opacity="0.85" />
 </svg>

@@ -1,27 +1,17 @@
 {
-  "short_name": "PDF Podcast",
-  "name": "Smart PDF Reader & Podcast TTS",
-  "description": "Đọc sách PDF và nghe tự động dạng podcast với Text-to-Speech",
+  "short_name": "Aurora Reader",
+  "name": "Aurora Reader • Smart E-Book & SaaS Reader",
+  "description": "Trình đọc sách thông minh và nền tảng SaaS E-Book Reader",
   "icons": [
     {
       "src": "/icon.svg",
       "type": "image/svg+xml",
       "sizes": "any"
-    },
-    {
-      "src": "/icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "/icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
     }
   ],
   "start_url": "/",
-  "background_color": "#0f172a",
-  "theme_color": "#4f46e5",
+  "background_color": "#0c0e14",
+  "theme_color": "#c97a3e",
   "display": "standalone",
   "orientation": "portrait"
 }

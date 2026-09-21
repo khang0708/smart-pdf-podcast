@@ -38,3 +38,14 @@ android/.idea/
 android/app/src/main/assets/public
 android/app/src/main/assets/capacitor.config.json
 android/capacitor-cordova-android-plugins
+
+# Environment files
+.env
+.env*.local
+!.env.example
+
+# Cloudflare worker dependencies
+worker/node_modules
+
+# Local test screenshots
+*.png

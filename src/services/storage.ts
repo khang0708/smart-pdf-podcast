@@ -1,5 +1,5 @@
 import localforage from 'localforage';
-import { Book, Bookmark, ReadingProgress } from '../types';
+import { Book, Bookmark, ReadingProgress, Annotation } from '../types';
 
 // Configure localforage stores
 const bookMetadataStore = localforage.createInstance({
@@ -15,6 +15,11 @@ const pdfBinaryStore = localforage.createInstance({
 const bookmarkStore = localforage.createInstance({
   name: 'smart_pdf_reader',
   storeName: 'bookmarks'
+});
+
+const annotationStore = localforage.createInstance({
+  name: 'smart_pdf_reader',
+  storeName: 'annotations'
 });
 
 const settingsStore = localforage.createInstance({
@@ -68,6 +73,11 @@ export const StorageService = {
     for (const b of bookmarks) {
       await bookmarkStore.removeItem(b.id);
     }
+    // Remove annotations for this book
+    const annotations = await this.getAnnotations(id);
+    for (const a of annotations) {
+      await annotationStore.removeItem(a.id);
+    }
   },
 
   // --- PDF Binaries (ArrayBuffer) ---
@@ -79,7 +89,20 @@ export const StorageService = {
     return await pdfBinaryStore.getItem<ArrayBuffer>(id);
   },
 
+  async hasPdfBinary(id: string): Promise<boolean> {
+    const item = await pdfBinaryStore.getItem<ArrayBuffer>(id);
+    return item !== null && item !== undefined;
+  },
+
   // --- Bookmarks ---
+  async getAllBookmarks(): Promise<Bookmark[]> {
+    const list: Bookmark[] = [];
+    await bookmarkStore.iterate((value: Bookmark) => {
+      list.push(value);
+    });
+    return list.sort((a, b) => b.createdAt - a.createdAt);
+  },
+
   async getBookmarks(bookId: string): Promise<Bookmark[]> {
     const list: Bookmark[] = [];
     await bookmarkStore.iterate((value: Bookmark) => {
@@ -96,6 +119,33 @@ export const StorageService = {
 
   async deleteBookmark(bookmarkId: string): Promise<void> {
     await bookmarkStore.removeItem(bookmarkId);
+  },
+
+  // --- Annotations / Notes ---
+  async getAllAnnotations(): Promise<Annotation[]> {
+    const list: Annotation[] = [];
+    await annotationStore.iterate((value: Annotation) => {
+      list.push(value);
+    });
+    return list.sort((a, b) => b.createdAt - a.createdAt);
+  },
+
+  async getAnnotations(bookId: string): Promise<Annotation[]> {
+    const list: Annotation[] = [];
+    await annotationStore.iterate((value: Annotation) => {
+      if (value.bookId === bookId) {
+        list.push(value);
+      }
+    });
+    return list.sort((a, b) => a.pageNumber - b.pageNumber);
+  },
+
+  async saveAnnotation(annotation: Annotation): Promise<void> {
+    await annotationStore.setItem(annotation.id, annotation);
+  },
+
+  async deleteAnnotation(annotationId: string): Promise<void> {
+    await annotationStore.removeItem(annotationId);
   },
 
   // --- Settings ---

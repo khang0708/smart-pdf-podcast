@@ -1,15 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { Book } from '../../types';
-import { BookCard } from './BookCard';
+import { DEFAULT_CURATED_BOOKS } from '../../App';
 import { 
-  UploadCloud, 
-  Search, 
-  Sparkles, 
-  BookOpen, 
-  Heart, 
-  Compass, 
-  Loader2,
-  FilePlus,
+  Plus, 
+  ExternalLink,
+  BookOpen,
+  Trash2,
+  Heart,
+  FileText,
   Play
 } from 'lucide-react';
 
@@ -21,34 +19,111 @@ interface BookListProps {
   onLoadSampleBook: () => Promise<void>;
   onToggleFavorite: (id: string, e: React.MouseEvent) => void;
   onDeleteBook: (id: string, e: React.MouseEvent) => void;
+  onOpenGoogleDrive?: () => void;
 }
+
+// Procedural Atelier Cover Palettes for books without image thumbnail
+const ATELIER_PALETTES = [
+  {
+    // Terracotta Leather (The Silent Echo style)
+    id: 'terracotta',
+    bg: 'linear-gradient(145deg, #ad522a 0%, #b85930 45%, #9d4621 100%)',
+    border: 'border-[#c76537]/50',
+    titleColor: 'text-[#fbf0e6]',
+    authorColor: 'text-[#fbf0e6]/90',
+    divider: 'bg-[#fbf0e6]/40',
+    spineGutter: 'from-black/45 via-black/15 to-transparent',
+    spineHighlight: 'bg-white/25',
+    type: 'terracotta'
+  },
+  {
+    // Ivory Linen with Crimson Frame & Feather (Whispers in the Wind style)
+    id: 'linen',
+    bg: '#f1ede4',
+    border: 'border-[#ded5c5]',
+    titleColor: 'text-[#832626]',
+    authorColor: 'text-stone-800',
+    doubleFrame: 'border-[#832626]',
+    innerFrame: 'border-[#832626]/60',
+    spineGutter: 'from-stone-500/25 via-stone-400/10 to-transparent',
+    spineHighlight: 'bg-white/40',
+    hasFeather: true,
+    type: 'linen'
+  },
+  {
+    // Antique Forest Green Leather with Gold Foil Deboss (Chronicles of Ash style)
+    id: 'forest',
+    bg: 'linear-gradient(145deg, #183323 0%, #1e3d2b 50%, #142a1d 100%)',
+    border: 'border-[#274632]',
+    titleColor: 'text-[#d6c085]',
+    authorColor: 'text-[#cbb37a]',
+    doubleFrame: 'border-[#cbb37a]/70',
+    innerFrame: 'border-[#cbb37a]/40',
+    spineGutter: 'from-black/50 via-black/20 to-transparent',
+    spineHighlight: 'bg-[#cbb37a]/30',
+    type: 'forest'
+  },
+  {
+    // Muted Sage Green Cloth with Nature Tree & Stag (The Quiet Woods style)
+    id: 'sage',
+    bg: '#839686',
+    border: 'border-[#96a999]',
+    titleColor: 'text-[#1c2820]',
+    authorColor: 'text-[#1c2820]',
+    spineGutter: 'from-black/25 via-black/10 to-transparent',
+    spineHighlight: 'bg-white/20',
+    hasTreeStag: true,
+    type: 'sage'
+  },
+  {
+    // Weathered Charcoal Leather (Lost Trails style)
+    id: 'charcoal',
+    bg: 'linear-gradient(145deg, #252b24 0%, #30372e 60%, #1e231d 100%)',
+    border: 'border-[#30372f]',
+    titleColor: 'text-[#c9cebe]',
+    authorColor: 'text-stone-400',
+    spineGutter: 'from-black/50 via-black/20 to-transparent',
+    spineHighlight: 'bg-white/15',
+    type: 'charcoal'
+  },
+  {
+    // Warm Amber Saddle Leather
+    id: 'saddle',
+    bg: 'linear-gradient(145deg, #8c4c23 0%, #9e592c 50%, #7d3f1a 100%)',
+    border: 'border-[#a85e33]',
+    titleColor: 'text-[#fdefde]',
+    authorColor: 'text-[#fdefde]/85',
+    spineGutter: 'from-black/45 via-black/15 to-transparent',
+    spineHighlight: 'bg-white/20',
+    type: 'saddle'
+  }
+];
 
 export const BookList: React.FC<BookListProps> = ({
   books,
   isLoading,
   onOpenBook,
   onUploadPdf,
-  onLoadSampleBook,
   onToggleFavorite,
-  onDeleteBook
+  onDeleteBook,
+  onOpenGoogleDrive
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterTab, setFilterTab] = useState<'all' | 'reading' | 'favorite'>('all');
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Filter books
-  const filteredBooks = books.filter(b => {
-    const matchesSearch = b.title.toLowerCase().includes(searchQuery.toLowerCase());
-    if (!matchesSearch) return false;
-    if (filterTab === 'reading') return b.currentPage > 1 && b.currentPage < b.totalPages;
-    if (filterTab === 'favorite') return !!b.isFavorite;
-    return true;
-  });
+  // Guarantee books are always present even before DB sync
+  const displayBooks = books && books.length > 0 ? books : DEFAULT_CURATED_BOOKS;
 
-  // Recent / Resume book
-  const recentBook = books.length > 0 ? books[0] : null;
+  // Selected book state
+  const [selectedBookId, setSelectedBookId] = useState<string>(
+    displayBooks.find(b => b.title.toLowerCase().includes('quiet'))?.id || displayBooks[0]?.id || ''
+  );
+
+  const activeBook = displayBooks.find(b => b.id === selectedBookId) || displayBooks[0];
+
+  // Calculate real reading progress
+  const progressPercent = activeBook 
+    ? Math.min(100, Math.max(0, Math.round((activeBook.currentPage / Math.max(1, activeBook.totalPages)) * 100)))
+    : 0;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,39 +132,27 @@ export const BookList: React.FC<BookListProps> = ({
       alert('Vui lòng chọn file định dạng PDF.');
       return;
     }
-    setUploading(true);
     try {
       await onUploadPdf(file);
     } catch (err: any) {
       alert('Lỗi tải file: ' + (err?.message || 'Không thể đọc file PDF.'));
     } finally {
-      setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
-      alert('Vui lòng chọn file định dạng PDF.');
-      return;
-    }
-    setUploading(true);
-    try {
-      await onUploadPdf(file);
-    } catch (err: any) {
-      alert('Lỗi tải file: ' + (err?.message || 'Không thể đọc file PDF.'));
-    } finally {
-      setUploading(false);
-    }
+  const getBookPalette = (book: Book, idx: number) => {
+    const t = book.title.toLowerCase();
+    if (t.includes('trail')) return ATELIER_PALETTES[4]; // Weathered Charcoal
+    if (t.includes('silent echo')) return ATELIER_PALETTES[0]; // Terracotta
+    if (t.includes('whisper')) return ATELIER_PALETTES[1]; // Ivory Linen
+    if (t.includes('ash')) return ATELIER_PALETTES[2]; // Forest Green Gold
+    if (t.includes('quiet')) return ATELIER_PALETTES[3]; // Sage Green Nature
+    return ATELIER_PALETTES[idx % ATELIER_PALETTES.length];
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-8">
-      {/* Hidden File Input */}
+    <div className="flex-1 w-full h-full bg-[#e2e5e1] text-stone-900 overflow-y-auto px-4 sm:px-8 pt-4 pb-24 md:pb-5 flex flex-col justify-between select-none font-sans">
       <input
         type="file"
         ref={fileInputRef}
@@ -98,195 +161,266 @@ export const BookList: React.FC<BookListProps> = ({
         className="hidden"
       />
 
-      {/* Hero / Quick Action Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Quick Upload Dropzone Card */}
-        <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`md:col-span-2 relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col justify-between border-2 border-dashed transition-all cursor-pointer ${
-            isDragging
-              ? 'border-indigo-400 bg-indigo-950/40 scale-[0.99]'
-              : 'border-slate-700/80 bg-gradient-to-br from-slate-800/80 via-slate-800/40 to-indigo-950/20 hover:border-indigo-500/60 hover:shadow-xl hover:shadow-indigo-500/5'
-          }`}
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Thư viện Offline 100%</span>
+      {/* ================= SECTION 1: THE DYNAMIC BOOKSHELF GALLERY ================= */}
+      <section className="relative overflow-x-auto pt-2 pb-6 -mx-4 sm:-mx-8 px-4 sm:px-8">
+        <div className="flex items-end gap-4 sm:gap-5 min-w-max pb-1 justify-start xl:justify-center">
+          
+          {displayBooks.map((book, idx) => {
+            const palette = getBookPalette(book, idx);
+            const isSelected = activeBook?.id === book.id;
+
+            return (
+              <div
+                key={book.id}
+                onClick={() => setSelectedBookId(book.id)}
+                onDoubleClick={() => onOpenBook(book)}
+                className={`group relative flex flex-col items-center cursor-pointer transition-all duration-300 ${
+                  isSelected ? '-translate-y-3 scale-[1.02]' : 'hover:-translate-y-2'
+                }`}
+                style={{ width: '175px' }}
+                title={`${book.title} - Nhấp để chọn, nhấp đúp để đọc`}
+              >
+                {/* Upright Hardcover Book Box with 3D Depth */}
+                <div
+                  className={`relative w-[175px] h-[260px] rounded-r-lg rounded-l-sm p-3.5 flex flex-col justify-between overflow-hidden shadow-2xl border ${palette.border}`}
+                  style={{
+                    background: palette.bg,
+                    boxShadow: isSelected
+                      ? '0 22px 36px -6px rgba(0,0,0,0.5), inset 4px 0 8px rgba(0,0,0,0.4)'
+                      : '0 18px 30px -6px rgba(0,0,0,0.38), inset 3px 0 6px rgba(0,0,0,0.25)'
+                  }}
+                >
+                  {/* Left Spine 3D Curvature & Highlight */}
+                  <div className={`absolute left-0 top-0 bottom-0 w-3.5 bg-gradient-to-r ${palette.spineGutter} pointer-events-none`} />
+                  <div className={`absolute left-1 top-0 bottom-0 w-[1px] ${palette.spineHighlight} pointer-events-none`} />
+
+                  {/* Render Book Cover: Image Thumbnail OR Procedural Atelier Cover */}
+                  {book.coverDataUrl ? (
+                    <div className="relative w-full h-full rounded-r-md rounded-l-sm overflow-hidden flex flex-col justify-between">
+                      <img 
+                        src={book.coverDataUrl} 
+                        alt={book.title} 
+                        className="w-full h-full object-cover" 
+                      />
+                      {/* Subdued overlay with title */}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent p-2.5 pt-8 text-center">
+                        <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-white line-clamp-2 leading-snug">
+                          {book.title}
+                        </h4>
+                        <p className="text-[10px] font-sans text-stone-300 truncate mt-0.5">
+                          {book.author || 'Tác giả'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Double Frame (if palette has one) */}
+                      {palette.doubleFrame && (
+                        <div className={`absolute inset-2.5 border ${palette.doubleFrame} pointer-events-none`}>
+                          <div className={`absolute inset-[3px] border ${palette.innerFrame} pointer-events-none`} />
+                        </div>
+                      )}
+
+                      {/* Title Section */}
+                      <div className="text-center pt-3 relative z-10">
+                        <h3 className={`font-serif font-bold text-sm uppercase tracking-[0.16em] ${palette.titleColor} line-clamp-3 leading-snug drop-shadow-sm`}>
+                          {book.title}
+                        </h3>
+                        {/* Thin Divider for Terracotta theme */}
+                        {palette.divider && (
+                          <div className={`w-[1px] h-8 ${palette.divider} mx-auto my-2.5`} />
+                        )}
+                      </div>
+
+                      {/* Center Emblem / Motif */}
+                      <div className="flex justify-center my-auto relative z-10 opacity-90">
+                        {palette.hasFeather && (
+                          <svg className="w-11 h-11 text-[#832626] fill-current" viewBox="0 0 100 100">
+                            <path d="M78 12 C55 18 36 38 30 62 C29 65 31 66 33 64 C38 58 45 52 54 48 C49 53 45 60 42 68 C41 71 43 72 45 70 C51 63 60 57 70 53 C64 60 60 69 57 79 L48 94 C47 96 49 98 51 96 L61 80 C68 68 76 56 82 42 C87 31 87 20 78 12 Z" />
+                            <path d="M48 94 Q62 55 78 12" stroke="#4a1515" strokeWidth="2.5" fill="none" />
+                          </svg>
+                        )}
+
+                        {palette.hasTreeStag && (
+                          <svg className="w-16 h-16 text-[#1c2820] stroke-current fill-none" viewBox="0 0 100 100">
+                            <path strokeWidth="1.8" strokeLinecap="round" d="M36 84 L36 50 C36 40 31 32 22 22 M36 50 C40 38 46 30 52 18 M36 58 L20 42 M36 46 L44 34 M28 30 L16 28 M42 40 L50 46 M39 30 L45 23 M25 24 L20 18 M50 20 L54 14" />
+                            <path strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" d="M60 84 L61 66 L64 60 L73 60 L76 66 L76 84 M64 60 L66 48 L70 43 L73 43 L71 50 L73 60" />
+                            <path strokeWidth="1.3" strokeLinecap="round" d="M70 43 L68 32 L64 28 M68 36 L71 31 M72 43 L74 33 L78 29 M74 36 L77 32" />
+                            <line x1="12" y1="84" x2="86" y2="84" strokeWidth="1.6" strokeLinecap="round" />
+                          </svg>
+                        )}
+
+                        {!palette.hasFeather && !palette.hasTreeStag && (
+                          <div className="w-8 h-8 rounded-full border border-current/30 flex items-center justify-center font-serif text-[11px]">
+                            {book.title.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Author */}
+                      <div className="text-center pb-2 relative z-10">
+                        <span className={`text-xs font-serif tracking-wider truncate block max-w-[140px] mx-auto ${palette.authorColor}`}>
+                          {book.author || 'Tác giả'}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Top Hover Action Overlay (Delete & Favorite) */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 z-20">
+                    <button
+                      onClick={(e) => onToggleFavorite(book.id, e)}
+                      className="p-1 rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors cursor-pointer"
+                      title={book.isFavorite ? 'Bỏ yêu thích' : 'Yêu thích'}
+                    >
+                      <Heart className={`w-3 h-3 ${book.isFavorite ? 'fill-[#b2532a] text-[#b2532a]' : 'text-white'}`} />
+                    </button>
+                    <button
+                      onClick={(e) => onDeleteBook(book.id, e)}
+                      className="p-1 rounded-full bg-black/50 hover:bg-red-600 text-white transition-colors cursor-pointer"
+                      title="Xóa sách"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Active Selected Glow Ring */}
+                  {isSelected && (
+                    <div className="absolute inset-0 border-2 border-white/60 rounded-r-lg rounded-l-sm pointer-events-none" />
+                  )}
+                </div>
+
+                {/* Ground Ellipse Shadow */}
+                <div className="w-36 h-2.5 bg-black/25 rounded-full blur-[4px] mt-2" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-                Tải lên sách PDF của bạn
-              </h2>
-              <p className="text-sm text-slate-300 max-w-md">
-                Kéo thả file PDF vào đây hoặc bấm để tải lên từ điện thoại / máy tính. Tự động lưu trang đã đọc để bạn tiếp tục đọc sách bất kỳ lúc nào!
+            );
+          })}
+
+        </div>
+      </section>
+
+      {/* ================= SECTION 2: DYNAMIC CONTINUED READING & OPEN BOOK ================= */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end pb-10">
+        
+        {/* Left Column: Continued Reading with REAL Data */}
+        <div className="lg:col-span-4 space-y-3 pb-3">
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#15181c] tracking-tight leading-none">
+              Continued<br />Reading
+            </h2>
+          </div>
+
+          {/* Dynamic Terracotta / Stone Pill Progress Bar */}
+          <div className="pt-2 space-y-1.5">
+            <div className="w-48 h-2 bg-[#c8ceca] rounded-full overflow-hidden flex">
+              <div 
+                className="h-full bg-[#b2532a] rounded-full transition-all duration-300"
+                style={{ width: `${Math.max(4, progressPercent)}%` }}
+              />
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono text-stone-600">
+              <span className="font-semibold text-[#b2532a]">{progressPercent}%</span>
+              <span>•</span>
+              <span>Trang {activeBook?.currentPage || 1} / {activeBook?.totalPages || 1}</span>
+            </div>
+          </div>
+
+          {/* Book Title & Quick Action */}
+          {activeBook && (
+            <div className="pt-2">
+              <p className="text-sm font-serif font-bold text-stone-900 truncate max-w-xs">
+                {activeBook.title}
               </p>
-            </div>
-            <div className="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-400 group-hover:scale-110 transition-transform">
-              {uploading ? (
-                <Loader2 className="w-7 h-7 animate-spin text-indigo-400" />
-              ) : (
-                <UploadCloud className="w-7 h-7" />
-              )}
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
-            >
-              <FilePlus className="w-4 h-4" />
-              <span>{uploading ? 'Đang đọc PDF...' : 'Chọn file PDF'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onLoadSampleBook();
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition-all cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Thêm sách mẫu đọc thử</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Resume Card (if books exist) */}
-        {recentBook ? (
-          <div
-            onClick={() => onOpenBook(recentBook)}
-            className="rounded-3xl p-6 bg-gradient-to-br from-indigo-900/50 to-slate-900 border border-indigo-500/30 flex flex-col justify-between relative overflow-hidden group cursor-pointer shadow-lg hover:shadow-indigo-500/20 transition-all"
-          >
-            <div className="relative z-10">
-              <span className="text-[11px] font-semibold text-indigo-400 uppercase tracking-wider">
-                Đang đọc dở gần nhất
-              </span>
-              <h3 className="text-base font-bold text-white line-clamp-2 mt-1 group-hover:text-indigo-200 transition-colors">
-                {recentBook.title}
-              </h3>
-              <p className="text-xs text-slate-300 mt-2">
-                Trang {recentBook.currentPage} / {recentBook.totalPages} ({Math.round((recentBook.currentPage / recentBook.totalPages) * 100)}%)
+              <p className="text-xs font-serif italic text-stone-600 truncate max-w-xs">
+                {activeBook.author || 'Tác giả'}
               </p>
+
+              <button
+                onClick={() => onOpenBook(activeBook)}
+                className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#b2532a] hover:bg-[#9c441f] text-white text-xs font-semibold shadow-md transition-all cursor-pointer active:scale-95"
+              >
+                <Play className="w-3 h-3 fill-current" />
+                <span>Mở đọc toàn màn hình</span>
+              </button>
             </div>
-
-            <div className="mt-4 flex items-center justify-between relative z-10">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-lg shadow-indigo-600/40 group-hover:bg-indigo-500 transition-all">
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Đọc tiếp ngay</span>
-              </div>
-              {recentBook.coverDataUrl && (
-                <img
-                  src={recentBook.coverDataUrl}
-                  alt=""
-                  className="w-12 h-16 object-cover rounded-lg shadow-md border border-white/10"
-                />
-              )}
-            </div>
-
-            {/* Background subtle glow */}
-            <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-600/20 rounded-full blur-2xl pointer-events-none" />
-          </div>
-        ) : (
-          <div className="rounded-3xl p-6 bg-slate-800/40 border border-slate-800 flex flex-col items-center justify-center text-center">
-            <BookOpen className="w-10 h-10 text-slate-600 mb-2" />
-            <p className="text-xs text-slate-400 font-medium">Chưa có cuốn sách nào</p>
-            <p className="text-[11px] text-slate-500 mt-1">Tải sách hoặc thêm sách mẫu để bắt đầu</p>
-          </div>
-        )}
-      </div>
-
-      {/* Search & Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-        {/* Tabs */}
-        <div className="flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 w-full sm:w-auto">
-          <button
-            onClick={() => setFilterTab('all')}
-            className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-medium transition-all ${
-              filterTab === 'all'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Tất cả ({books.length})
-          </button>
-          <button
-            onClick={() => setFilterTab('reading')}
-            className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-medium transition-all ${
-              filterTab === 'reading'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Đang đọc ({books.filter(b => b.currentPage > 1 && b.currentPage < b.totalPages).length})
-          </button>
-          <button
-            onClick={() => setFilterTab('favorite')}
-            className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
-              filterTab === 'favorite'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Heart className="w-3.5 h-3.5" />
-            <span>Yêu thích ({books.filter(b => b.isFavorite).length})</span>
-          </button>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm sách..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-800/80 border border-slate-700/70 rounded-xl text-xs text-slate-200 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition-colors"
-          />
-        </div>
-      </div>
-
-      {/* Book Grid */}
-      {isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-3" />
-          <p className="text-sm">Đang tải thư viện sách...</p>
-        </div>
-      ) : filteredBooks.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-          {filteredBooks.map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              onOpenBook={onOpenBook}
-              onToggleFavorite={onToggleFavorite}
-              onDeleteBook={onDeleteBook}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="py-16 text-center rounded-3xl bg-slate-800/30 border border-slate-800 p-8">
-          <Compass className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-slate-300">Không tìm thấy sách nào</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            {searchQuery ? 'Thử tìm kiếm với từ khoá khác hoặc xoá bộ lọc.' : 'Hãy tải lên cuốn sách PDF đầu tiên của bạn để bắt đầu đọc và nghe podcast!'}
-          </p>
-          {!searchQuery && (
-            <button
-              onClick={onLoadSampleBook}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600/80 hover:bg-indigo-600 text-white text-xs font-semibold transition-all cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Thêm sách mẫu</span>
-            </button>
           )}
         </div>
-      )}
+
+        {/* Right Column: Dynamic Physical Open Hardcover Book Spread */}
+        <div className="lg:col-span-8 flex justify-center">
+          <div 
+            onClick={() => activeBook && onOpenBook(activeBook)}
+            className="w-full max-w-2xl bg-[#ad522a] p-2 sm:p-2.5 rounded-md shadow-2xl cursor-pointer hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45)] transition-shadow relative group"
+            title="Nhấp để mở chế độ đọc toàn màn hình"
+          >
+            {/* Dual Cream Paper Leaves Spread */}
+            <div 
+              className="w-full bg-[#fbf8f2] rounded-sm grid grid-cols-1 sm:grid-cols-2 p-6 sm:p-7 relative shadow-inner overflow-hidden min-h-[290px]"
+              style={{
+                boxShadow: 'inset 0 0 10px rgba(0,0,0,0.06)'
+              }}
+            >
+              {/* Center Spine Gutter Crease Shadow */}
+              <div 
+                className="absolute left-1/2 top-0 bottom-0 w-12 -translate-x-1/2 pointer-events-none hidden sm:block"
+                style={{
+                  background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.04) 40%, rgba(0,0,0,0.18) 50%, rgba(0,0,0,0.04) 60%, transparent 100%)'
+                }}
+              />
+
+              {/* LEFT PAGE */}
+              <div className="space-y-4 sm:pr-6 sm:border-r sm:border-stone-200/60">
+                {/* Header: Page & Real Book Title */}
+                <div className="flex items-center justify-between text-xs font-serif text-[#5a625d]">
+                  <span className="font-mono text-[11px]">{activeBook?.currentPage || 1}</span>
+                  <span className="italic truncate max-w-[140px]">{activeBook?.title || 'Cuốn sách'}</span>
+                </div>
+
+                {/* Literary Body Text */}
+                <div className="space-y-3 text-xs sm:text-[13px] font-serif leading-[1.75] text-[#2a2d2a] text-justify">
+                  <p>
+                    Không gian tĩnh tại và sự tập trung là chiếc chìa khóa mở ra cánh cửa tri thức sâu thẳm nhất của mỗi cuốn sách. Khi bạn lật từng trang, bạn đang bước vào cuộc trò chuyện không biên giới với tác giả qua thời gian.
+                  </p>
+                </div>
+
+                {/* Section Title at Bottom */}
+                <div className="pt-2">
+                  <h4 className="font-serif font-bold text-xs sm:text-sm text-[#1b221d]">
+                    Chương {Math.max(1, Math.ceil((activeBook?.currentPage || 1) / 10))}: Hành trình Tri thức
+                  </h4>
+                </div>
+              </div>
+
+              {/* RIGHT PAGE */}
+              <div className="space-y-4 sm:pl-6 pt-4 sm:pt-0">
+                {/* Header: Title & Next Page */}
+                <div className="flex items-center justify-between text-xs font-serif text-[#5a625d]">
+                  <span className="italic truncate max-w-[140px]">{activeBook?.title || 'Cuốn sách'}</span>
+                  <span className="font-mono text-[11px]">{(activeBook?.currentPage || 1) + 1}</span>
+                </div>
+
+                {/* Literary Body Text */}
+                <div className="space-y-3 text-xs sm:text-[13px] font-serif leading-[1.7] text-[#2a2d2a] text-justify">
+                  <p>
+                    Âm thanh của chữ viết vang lên qua từng câu văn, đồng điệu cùng giọng đọc podcast thông minh giúp bạn thẩm thấu sâu sắc và lưu giữ những giá trị vượt thời gian.
+                  </p>
+                  <p className="text-stone-600 italic text-[11px]">
+                    "Tĩnh lặng không có nghĩa là không có âm thanh, mà là tâm trí bạn an trú hoàn toàn vào khoảnh khắc này."
+                  </p>
+                </div>
+
+                <div className="pt-2 text-right">
+                  <span className="text-[11px] font-mono text-[#b2532a] group-hover:underline">
+                    Nhấp để đọc tiếp &rarr;
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </section>
     </div>
   );
 };

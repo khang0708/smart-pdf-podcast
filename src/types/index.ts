@@ -9,6 +9,10 @@ export interface Book {
   lastReadAt: number;
   coverDataUrl?: string;
   isFavorite?: boolean;
+  storagePath?: string; // Supabase Cloud storage path
+  syncStatus?: 'local' | 'synced' | 'syncing' | 'cloud_only';
+  source?: 'local' | 'google_drive' | 'cloud';
+  driveFileId?: string;
 }
 
 export interface Bookmark {
@@ -16,8 +20,27 @@ export interface Bookmark {
   bookId: string;
   pageNumber: number;
   title?: string;
+  snippet?: string;
+  note?: string;
   createdAt: number;
+  syncRoomId?: string;
 }
+
+export interface Annotation {
+  id: string;
+  bookId: string;
+  pageNumber: number;
+  quote?: string;
+  content: string;
+  tags?: string[];
+  color?: 'terracotta' | 'amber' | 'sage' | 'blue' | 'purple';
+  createdAt: number;
+  updatedAt: number;
+  syncRoomId?: string;
+}
+
+export type NavTab = 'bookshelf' | 'library' | 'bookmarks' | 'annotations' | 'settings' | 'podcasts';
+
 
 export interface ReadingProgress {
   bookId: string;
@@ -51,3 +74,35 @@ export interface TTSState {
 
 export type ThemeMode = 'dark' | 'light' | 'sepia';
 export type ViewMode = 'single' | 'scroll';
+
+// Cloud Sync & Google Drive Types
+export interface SyncConfig {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  syncRoomId?: string;
+  googleClientId?: string;
+  googleApiKey?: string;
+  autoSync: boolean;
+  syncPdfFiles: boolean;
+}
+
+export interface SyncStatus {
+  isConnected: boolean;
+  isSyncing: boolean;
+  lastSyncedAt: number | null;
+  error: string | null;
+  userEmail: string | null;
+  syncRoomId: string | null;
+  provider?: 'cloudflare' | 'supabase' | 'local';
+  edgePingMs?: number | null;
+  isEdge?: boolean;
+}
+
+export interface GoogleDriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  sizeBytes?: number;
+  modifiedTime?: string;
+  iconUrl?: string;
+}
