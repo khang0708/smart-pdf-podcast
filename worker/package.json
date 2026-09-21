@@ -1,0 +1,17 @@
+{
+  "name": "aurora-reader-edge-worker",
+  "version": "1.0.0",
+  "description": "High-Performance Cloudflare D1 & R2 Edge API for Aurora Reader SaaS",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "d1:init": "wrangler d1 execute aurora-db --file=./schema.sql",
+    "d1:init:local": "wrangler d1 execute aurora-db --local --file=./schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250204.0",
+    "typescript": "^5.7.3",
+    "wrangler": "^3.107.3"
+  }
+}
