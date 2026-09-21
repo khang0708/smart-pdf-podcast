@@ -49,3 +49,6 @@ worker/node_modules
 
 # Local test screenshots
 *.png
+
+# Antigravity agent skills
+.agents/
