@@ -78,7 +78,7 @@ def get_speakers():
         for spk_id, info in SPEAKERS.items()
     ]
 
-def _run_pipeline_job(job_id: str, pdf_path: str, book_id: str, speaker: str, enable_bgm: bool):
+def _run_pipeline_job(job_id: str, pdf_path: str, book_id: str, speaker: str, enable_bgm: bool, custom_title: Optional[str] = None):
     try:
         JOB_REGISTRY[job_id]["status"] = "processing"
 
@@ -97,6 +97,7 @@ def _run_pipeline_job(job_id: str, pdf_path: str, book_id: str, speaker: str, en
         manifest = pipeline.run(
             pdf_path=pdf_path,
             book_id=book_id,
+            custom_title=custom_title,
             progress_callback=on_progress
         )
 
@@ -118,6 +119,7 @@ async def start_conversion(
     file: Optional[UploadFile] = File(None),
     pdf_path: Optional[str] = Form(None),
     book_id: Optional[str] = Form(None),
+    title: Optional[str] = Form(None),
     speaker: str = Form("NF"),
     enable_bgm: bool = Form(True)
 ):
@@ -126,14 +128,27 @@ async def start_conversion(
     """
     target_pdf_path = ""
     target_book_id = book_id or "podcast_" + uuid.uuid4().hex[:8]
+    derived_title = title
 
     if file:
         file_ext = os.path.splitext(file.filename)[1] or ".pdf"
         target_pdf_path = os.path.join(UPLOAD_TMP_DIR, f"{target_book_id}{file_ext}")
         with open(target_pdf_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+        if not derived_title and file.filename:
+            derived_title = os.path.splitext(file.filename)[0].replace("-", " ").replace("_", " ")
     elif pdf_path and os.path.exists(pdf_path):
         target_pdf_path = pdf_path
+    elif target_book_id:
+        # Kiểm tra file đã upload trước đó trong cache
+        cached_pdf = os.path.join(UPLOAD_TMP_DIR, f"{target_book_id}.pdf")
+        sample_path = os.path.join(BASE_DIR, "public", "sample-book.pdf")
+        if os.path.exists(cached_pdf):
+            target_pdf_path = cached_pdf
+        elif os.path.exists(sample_path):
+            target_pdf_path = sample_path
+        else:
+            raise HTTPException(status_code=400, detail="Vui lòng tải lên file PDF của cuốn sách này.")
     else:
         raise HTTPException(status_code=400, detail="Vui lòng cung cấp file PDF hợp lệ.")
 
@@ -141,6 +156,7 @@ async def start_conversion(
     JOB_REGISTRY[job_id] = {
         "job_id": job_id,
         "book_id": target_book_id,
+        "title": derived_title or target_book_id,
         "status": "pending",
         "percent": 0,
         "stage": "INITIALIZING",
@@ -153,7 +169,7 @@ async def start_conversion(
     # Chạy ngầm qua background thread để không block API
     thread = threading.Thread(
         target=_run_pipeline_job,
-        args=(job_id, target_pdf_path, target_book_id, speaker, enable_bgm)
+        args=(job_id, target_pdf_path, target_book_id, speaker, enable_bgm, derived_title)
     )
     thread.daemon = True
     thread.start()
@@ -161,6 +177,7 @@ async def start_conversion(
     return {
         "job_id": job_id,
         "book_id": target_book_id,
+        "title": derived_title,
         "status": "started",
         "message": "Tiến trình chuyển đổi đã bắt đầu chạy ngầm."
     }

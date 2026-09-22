@@ -36,6 +36,7 @@ class PodcastPipeline:
         self,
         pdf_path: str,
         book_id: Optional[str] = None,
+        custom_title: Optional[str] = None,
         progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None
     ) -> Dict[str, Any]:
         """
@@ -61,7 +62,7 @@ class PodcastPipeline:
         notify("EXTRACTING", 10, f"Đang trích xuất nội dung văn bản từ {os.path.basename(pdf_path)}...")
         extractor = PDFExtractor(pdf_path)
         extracted_doc = extractor.extract()
-        title = extracted_doc.get("title") or book_key
+        title = custom_title or extracted_doc.get("title") or book_key
         author = extracted_doc.get("author") or "Ẩn danh"
         toc = extracted_doc.get("toc", [])
 

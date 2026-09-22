@@ -134,6 +134,7 @@ export const App: React.FC = () => {
   // Podcast State
   const [showGeneratePodcastModal, setShowGeneratePodcastModal] = useState<boolean>(false);
   const [podcastModalBook, setPodcastModalBook] = useState<Book | null>(null);
+  const [podcastModalFile, setPodcastModalFile] = useState<File | null>(null);
   const [activePodcastBook, setActivePodcastBook] = useState<Book | null>(null);
   const [showPodcastPlayer, setShowPodcastPlayer] = useState<boolean>(false);
 
@@ -438,8 +439,9 @@ export const App: React.FC = () => {
                 setActivePodcastBook(book);
                 setShowPodcastPlayer(true);
               }}
-              onRequestGenerate={(book) => {
-                setPodcastModalBook(book);
+              onRequestGenerate={(book, file) => {
+                setPodcastModalBook(book || null);
+                setPodcastModalFile(file || null);
                 setShowGeneratePodcastModal(true);
               }}
             />
@@ -499,13 +501,18 @@ export const App: React.FC = () => {
         onPdfDownloaded={handleGoogleDrivePdfDownloaded}
       />
 
-      {podcastModalBook && (
+      {showGeneratePodcastModal && (
         <GeneratePodcastModal
           book={podcastModalBook}
+          initialFile={podcastModalFile}
           isOpen={showGeneratePodcastModal}
-          onClose={() => setShowGeneratePodcastModal(false)}
-          onPodcastReady={() => {
-            setActivePodcastBook(podcastModalBook);
+          onClose={() => {
+            setShowGeneratePodcastModal(false);
+            setPodcastModalFile(null);
+          }}
+          onPodcastReady={async (readyBook) => {
+            await refreshBooks();
+            setActivePodcastBook(readyBook);
             setShowPodcastPlayer(true);
           }}
         />

@@ -96,16 +96,26 @@ class PodcastService {
   }
 
   async startConversion(
-    file: File | null,
-    bookId: string,
+    file: File | Blob | null,
+    bookId?: string,
     speaker: string = 'NF',
-    enableBgm: boolean = true
-  ): Promise<{ job_id: string; book_id: string }> {
+    enableBgm: boolean = true,
+    title?: string
+  ): Promise<{ job_id: string; book_id: string; title?: string }> {
     const formData = new FormData();
+    const effectiveBookId = bookId || `book_${Date.now()}`;
+
     if (file) {
-      formData.append('file', file);
+      if (file instanceof File) {
+        formData.append('file', file);
+      } else {
+        formData.append('file', file, `${effectiveBookId}.pdf`);
+      }
     }
-    formData.append('book_id', bookId);
+    formData.append('book_id', effectiveBookId);
+    if (title) {
+      formData.append('title', title);
+    }
     formData.append('speaker', speaker);
     formData.append('enable_bgm', String(enableBgm));
 
@@ -126,6 +136,18 @@ class PodcastService {
     const res = await fetch(`${getPodcastApiBase()}/api/status/${jobId}`);
     if (!res.ok) throw new Error('Không tìm thấy trạng thái');
     return await res.json();
+  }
+
+  async listAllPodcasts(): Promise<PodcastManifest[]> {
+    try {
+      const res = await fetch(`${getPodcastApiBase()}/api/podcasts`);
+      if (res.ok) {
+        return await res.json();
+      }
+      return [];
+    } catch {
+      return [];
+    }
   }
 
   async getManifest(bookId: string): Promise<PodcastManifest | null> {
