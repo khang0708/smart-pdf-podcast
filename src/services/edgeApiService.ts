@@ -8,15 +8,24 @@ export const edgeApiService = {
    * Get the Cloudflare Worker URL from env or localStorage
    */
   getEdgeUrl(): string {
+    const isValidUrl = (val?: string | null): boolean => {
+      if (!val || typeof val !== 'string') return false;
+      const trimmed = val.trim();
+      if (!trimmed || trimmed.toLowerCase().includes('vite_cloudflare')) return false;
+      // Must contain a dot (domain.com) or localhost
+      if (!trimmed.includes('.') && !trimmed.includes('localhost')) return false;
+      return true;
+    };
+
     const fromStorage = localStorage.getItem(EDGE_URL_KEY);
-    if (fromStorage && fromStorage.trim()) {
+    if (fromStorage && isValidUrl(fromStorage)) {
       let url = fromStorage.trim().replace(/\/+$/, '');
       if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
       return url;
     }
     
     const fromEnv = (import.meta.env.VITE_CLOUDFLARE_WORKER_URL || import.meta.env.VITE_API_URL) as string;
-    if (fromEnv && fromEnv.trim()) {
+    if (fromEnv && isValidUrl(fromEnv)) {
       let url = fromEnv.trim().replace(/\/+$/, '');
       if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
       return url;
@@ -27,7 +36,7 @@ export const edgeApiService = {
   },
 
   setEdgeUrl(url: string): void {
-    if (url) {
+    if (url && url.trim() && !url.toLowerCase().includes('vite_cloudflare') && url.includes('.')) {
       let clean = url.trim().replace(/\/+$/, '');
       if (!/^https?:\/\//i.test(clean)) clean = 'https://' + clean;
       localStorage.setItem(EDGE_URL_KEY, clean);
