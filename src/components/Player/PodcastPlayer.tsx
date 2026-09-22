@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Book } from '../../types';
-import { podcastService, PodcastManifest, ChapterTrack } from '../../services/podcastService';
+import { podcastService, PodcastManifest, ChapterTrack, resolveAudioUrl } from '../../services/podcastService';
 import { 
   Play, 
   Pause, 
@@ -58,7 +58,7 @@ export const PodcastPlayer: React.FC<PodcastPlayerProps> = ({
     if (!audioRef.current) return;
     if (currentChapter?.audio_url) {
       setLoadingAudio(true);
-      audioRef.current.src = currentChapter.audio_url;
+      audioRef.current.src = resolveAudioUrl(currentChapter.audio_url);
       audioRef.current.load();
       if (isPlaying) {
         audioRef.current.play().catch(() => setIsPlaying(false));

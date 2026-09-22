@@ -44,14 +44,32 @@ export interface JobStatus {
   error?: string;
 }
 
-const API_BASE = 'http://127.0.0.1:8765';
+export const getPodcastApiBase = (): string => {
+  const envUrl = (import.meta as any).env?.VITE_PODCAST_API_URL;
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '');
+  }
+  return 'http://127.0.0.1:8765';
+};
+
+export const resolveAudioUrl = (url: string): string => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  const base = getPodcastApiBase();
+  if (base && !base.includes('127.0.0.1') && !base.includes('localhost')) {
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+  return url;
+};
 
 class PodcastService {
   private workerOnline: boolean | null = null;
 
   async isWorkerOnline(): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/api/health`, { method: 'GET' });
+      const res = await fetch(`${getPodcastApiBase()}/api/health`, { method: 'GET' });
       const data = await res.json();
       this.workerOnline = data.status === 'healthy';
       return this.workerOnline;
@@ -63,7 +81,7 @@ class PodcastService {
 
   async getSpeakers(): Promise<Speaker[]> {
     try {
-      const res = await fetch(`${API_BASE}/api/speakers`);
+      const res = await fetch(`${getPodcastApiBase()}/api/speakers`);
       if (!res.ok) throw new Error('Failed to load speakers');
       return await res.json();
     } catch {
@@ -91,7 +109,7 @@ class PodcastService {
     formData.append('speaker', speaker);
     formData.append('enable_bgm', String(enableBgm));
 
-    const res = await fetch(`${API_BASE}/api/convert`, {
+    const res = await fetch(`${getPodcastApiBase()}/api/convert`, {
       method: 'POST',
       body: formData,
     });
@@ -105,7 +123,7 @@ class PodcastService {
   }
 
   async getJobStatus(jobId: string): Promise<JobStatus> {
-    const res = await fetch(`${API_BASE}/api/status/${jobId}`);
+    const res = await fetch(`${getPodcastApiBase()}/api/status/${jobId}`);
     if (!res.ok) throw new Error('Không tìm thấy trạng thái');
     return await res.json();
   }
@@ -119,7 +137,7 @@ class PodcastService {
       }
 
       // 2. Thử tải qua FastAPI worker
-      const apiRes = await fetch(`${API_BASE}/api/podcasts/${bookId}`);
+      const apiRes = await fetch(`${getPodcastApiBase()}/api/podcasts/${bookId}`);
       if (apiRes.ok) {
         return await apiRes.json();
       }
