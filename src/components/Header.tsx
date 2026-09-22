@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Search, Cloud, Plus, Sun, Moon, Coffee } from 'lucide-react';
 import { ThemeMode, SyncStatus } from '../types';
+import { BrandLogo } from './Common/BrandLogo';
 
 interface HeaderProps {
   currentView: 'library' | 'reader';
@@ -46,13 +47,18 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Thư viện</span>
           </button>
         ) : (
-          <div className="flex flex-col cursor-pointer shrink-0" onClick={() => onSelectNav?.('bookshelf')}>
-            <span className="font-serif font-bold text-sm sm:text-lg text-[#e8e2d5] tracking-[0.16em] uppercase leading-none">
-              AURORA
-            </span>
-            <span className="hidden sm:inline text-[7.5px] font-sans font-medium tracking-[0.28em] text-[#8e887c] uppercase mt-0.5">
-              LITERARY COLLECTIVE
-            </span>
+          <div className="flex items-center gap-2.5 cursor-pointer shrink-0 group" onClick={() => onSelectNav?.('bookshelf')}>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 text-[#c97a3e] shrink-0 transition-transform duration-300 group-hover:scale-110">
+              <BrandLogo />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-serif font-bold text-sm sm:text-base text-[#e8e2d5] tracking-[0.16em] uppercase leading-none">
+                AURORA
+              </span>
+              <span className="hidden sm:inline text-[7.5px] font-sans font-medium tracking-[0.28em] text-[#8e887c] uppercase mt-0.5">
+                LITERARY COLLECTIVE
+              </span>
+            </div>
           </div>
         )}
 
