@@ -9,17 +9,28 @@ export const edgeApiService = {
    */
   getEdgeUrl(): string {
     const fromStorage = localStorage.getItem(EDGE_URL_KEY);
-    if (fromStorage && fromStorage.trim()) return fromStorage.trim().replace(/\/+$/, '');
+    if (fromStorage && fromStorage.trim()) {
+      let url = fromStorage.trim().replace(/\/+$/, '');
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      return url;
+    }
     
     const fromEnv = (import.meta.env.VITE_CLOUDFLARE_WORKER_URL || import.meta.env.VITE_API_URL) as string;
-    if (fromEnv && fromEnv.trim()) return fromEnv.trim().replace(/\/+$/, '');
+    if (fromEnv && fromEnv.trim()) {
+      let url = fromEnv.trim().replace(/\/+$/, '');
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      return url;
+    }
 
-    return '';
+    // Default production Cloudflare Edge Worker fallback
+    return 'https://aurora-reader-api.aurora-reader.workers.dev';
   },
 
   setEdgeUrl(url: string): void {
     if (url) {
-      localStorage.setItem(EDGE_URL_KEY, url.trim().replace(/\/+$/, ''));
+      let clean = url.trim().replace(/\/+$/, '');
+      if (!/^https?:\/\//i.test(clean)) clean = 'https://' + clean;
+      localStorage.setItem(EDGE_URL_KEY, clean);
     } else {
       localStorage.removeItem(EDGE_URL_KEY);
     }
@@ -55,14 +66,17 @@ export const edgeApiService = {
         headers: { 'Content-Type': 'application/json' },
       });
       const latencyMs = Math.round(performance.now() - start);
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const data = await res.json() as any;
-        return {
-          ok: true,
-          latencyMs,
-          region: data?.region || 'Edge',
-          city: data?.city || 'Hanoi/HCMC',
-        };
+        if (data?.status === 'ok') {
+          return {
+            ok: true,
+            latencyMs,
+            region: data?.region || 'Edge',
+            city: data?.city || 'Hanoi/HCMC',
+          };
+        }
       }
       return { ok: false, latencyMs };
     } catch (err) {
@@ -186,6 +200,14 @@ export const edgeApiService = {
         headers,
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        return { 
+          success: false, 
+          error: 'URL máy chủ Edge không đúng hoặc Vercel chưa cập nhật biến môi trường VITE_CLOUDFLARE_WORKER_URL.' 
+        };
+      }
+
       const data = await res.json() as any;
       if (res.ok && data.success) {
         const books: Book[] = (data.books || []).map((row: any) => ({
@@ -254,6 +276,14 @@ export const edgeApiService = {
         headers,
         body: JSON.stringify(payload),
       });
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        return { 
+          success: false, 
+          error: 'URL máy chủ Edge không đúng hoặc Vercel chưa cập nhật biến môi trường VITE_CLOUDFLARE_WORKER_URL.' 
+        };
+      }
 
       const data = await res.json() as any;
       if (res.ok && data.success) {
