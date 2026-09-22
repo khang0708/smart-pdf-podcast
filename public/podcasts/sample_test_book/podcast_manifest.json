@@ -1,0 +1,36 @@
+{
+  "book_id": "sample_test_book",
+  "title": "sample_test_book",
+  "author": "Tác giả ẩn danh",
+  "speaker": "NF",
+  "speaker_info": {
+    "name": "Nữ miền Bắc (Chuẩn)",
+    "gender": "female",
+    "region": "north"
+  },
+  "total_chapters": 2,
+  "total_duration_seconds": 55.16,
+  "total_duration_formatted": "00:55",
+  "chapters": [
+    {
+      "chapter_index": 1,
+      "title": "Chương 1: Bình Minh Trên Đỉnh Núi",
+      "audio_url": "/podcasts/sample_test_book/chapter_01.mp3",
+      "mp3_file": "chapter_01.mp3",
+      "duration_seconds": 29.32,
+      "duration_formatted": "00:29",
+      "total_chunks": 3
+    },
+    {
+      "chapter_index": 2,
+      "title": "Chương 2: Tiếng Vọng Của Thời Gian",
+      "audio_url": "/podcasts/sample_test_book/chapter_02.mp3",
+      "mp3_file": "chapter_02.mp3",
+      "duration_seconds": 25.84,
+      "duration_formatted": "00:25",
+      "total_chunks": 3
+    }
+  ],
+  "created_at": 1790059891,
+  "processing_time_sec": 1.32
+}

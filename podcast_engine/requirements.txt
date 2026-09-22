@@ -1,0 +1,12 @@
+pymupdf>=1.28.0
+pymupdf4llm>=1.28.0
+pydub>=0.25.1
+audioop-lts>=0.2.2
+imageio-ffmpeg>=0.6.0
+fastapi>=0.110.0
+uvicorn>=0.28.0
+python-multipart>=0.0.9
+soundfile>=0.12.1
+numpy>=1.26.0
+torch>=2.0.0
+v-tts>=1.0.0

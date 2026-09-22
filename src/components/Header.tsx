@@ -111,6 +111,17 @@ export const Header: React.FC<HeaderProps> = ({
             >
               ANNOTATIONS
             </button>
+            <button
+              onClick={() => onSelectNav?.('podcasts')}
+              className={`pb-1 transition-colors cursor-pointer uppercase flex items-center gap-1.5 ${
+                activeNav === 'podcasts'
+                  ? 'text-[#94a596] border-b-2 border-[#94a596]'
+                  : 'text-stone-400 hover:text-[#94a596]'
+              }`}
+            >
+              <span>PODCASTS</span>
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#94a596]/20 text-[#94a596] font-mono">AI</span>
+            </button>
           </nav>
         )}
       </div>

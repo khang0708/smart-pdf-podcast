@@ -52,3 +52,9 @@ worker/node_modules
 
 # Antigravity agent skills
 .agents/
+
+# Podcast Engine cache & assets
+podcast_engine/.cache/
+podcast_engine/v_tts_src/
+podcast_engine/sample_test_book.pdf
+*.wav

@@ -12,6 +12,8 @@ import { BookmarksView } from './components/Bookmarks/BookmarksView';
 import { AnnotationsView } from './components/Annotations/AnnotationsView';
 import { PdfViewer } from './components/Reader/PdfViewer';
 import { PodcastPlayer } from './components/Player/PodcastPlayer';
+import { PodcastsView } from './components/Player/PodcastsView';
+import { GeneratePodcastModal } from './components/Player/GeneratePodcastModal';
 import { SyncModal } from './components/Sync/SyncModal';
 import { GoogleDriveModal } from './components/Library/GoogleDriveModal';
 import { PDFDocumentProxy } from 'pdfjs-dist';
@@ -128,6 +130,12 @@ export const App: React.FC = () => {
   const [isCloudDownloading, setIsCloudDownloading] = useState<boolean>(false);
   const [showReaderControls, setShowReaderControls] = useState<boolean>(true);
   const headerFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Podcast State
+  const [showGeneratePodcastModal, setShowGeneratePodcastModal] = useState<boolean>(false);
+  const [podcastModalBook, setPodcastModalBook] = useState<Book | null>(null);
+  const [activePodcastBook, setActivePodcastBook] = useState<Book | null>(null);
+  const [showPodcastPlayer, setShowPodcastPlayer] = useState<boolean>(false);
 
   // 1. Initial load of books & populate curated Atelier shelf
   useEffect(() => {
@@ -423,6 +431,18 @@ export const App: React.FC = () => {
               onOpenDrive={() => setShowGoogleDriveModal(true)}
               onLoadSampleBook={handleLoadSampleBook}
             />
+          ) : activeNav === 'podcasts' ? (
+            <PodcastsView
+              books={books}
+              onPlayPodcast={(book) => {
+                setActivePodcastBook(book);
+                setShowPodcastPlayer(true);
+              }}
+              onRequestGenerate={(book) => {
+                setPodcastModalBook(book);
+                setShowGeneratePodcastModal(true);
+              }}
+            />
           ) : activeNav === 'bookmarks' ? (
             <BookmarksView
               books={books}
@@ -447,14 +467,13 @@ export const App: React.FC = () => {
           )}
         </main>
 
-        {/* 3. Floating Pill Podcast Player (Tạm ẩn theo yêu cầu) */}
-        {/* {currentView === 'library' && activeBook && (
+        {/* 3. Floating Pill Podcast Player */}
+        {showPodcastPlayer && activePodcastBook && (
           <PodcastPlayer
-            book={activeBook}
-            ttsState={ttsState}
-            onPageChange={handlePageChange}
+            book={activePodcastBook}
+            onClose={() => setShowPodcastPlayer(false)}
           />
-        )} */}
+        )}
       </div>
 
       {/* Cloud Downloading Indicator */}
@@ -479,6 +498,18 @@ export const App: React.FC = () => {
         onClose={() => setShowGoogleDriveModal(false)}
         onPdfDownloaded={handleGoogleDrivePdfDownloaded}
       />
+
+      {podcastModalBook && (
+        <GeneratePodcastModal
+          book={podcastModalBook}
+          isOpen={showGeneratePodcastModal}
+          onClose={() => setShowGeneratePodcastModal(false)}
+          onPodcastReady={() => {
+            setActivePodcastBook(podcastModalBook);
+            setShowPodcastPlayer(true);
+          }}
+        />
+      )}
     </div>
   );
 };

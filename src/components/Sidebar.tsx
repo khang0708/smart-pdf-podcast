@@ -110,19 +110,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Archive className="w-4 h-4" />
           </button>
 
-          {/* 6. Podcast Tower (Tạm ẩn theo yêu cầu) */}
-          {/* <button
+          {/* 6. Podcast Tower */}
+          <button
             onClick={() => onSelectTab('podcasts')}
-            title="Podcasts"
+            title="AI Audio Podcasts"
             className={`relative w-10 h-10 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-              activeTab === 'podcasts' ? 'text-white' : 'text-stone-500 hover:text-stone-300'
+              activeTab === 'podcasts' ? 'text-[#94a596]' : 'text-stone-500 hover:text-[#94a596]'
             }`}
           >
             <Radio className="w-4 h-4" />
             {activeTab === 'podcasts' && (
-              <span className="absolute -left-2 top-1.5 bottom-1.5 w-1 bg-white rounded-r-full" />
+              <span className="absolute -left-2 top-1.5 bottom-1.5 w-1 bg-[#94a596] rounded-r-full" />
             )}
-          </button> */}
+          </button>
 
           {/* 7. Settings Gear */}
           <button
@@ -248,7 +248,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <span className="text-[10px] font-sans font-medium tracking-tight">Ghi chú</span>
       </button>
 
-      {/* 5. Cài đặt (Settings) */}
+      {/* 5. Podcasts */}
+      <button
+        onClick={() => onSelectTab('podcasts')}
+        className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+          activeTab === 'podcasts'
+            ? 'text-white'
+            : 'text-stone-400 hover:text-stone-200'
+        }`}
+      >
+        <div className="relative">
+          <Radio className={`w-5 h-5 ${activeTab === 'podcasts' ? 'text-[#94a596]' : ''}`} />
+          {activeTab === 'podcasts' && (
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#94a596]" />
+          )}
+        </div>
+        <span className="text-[10px] font-sans font-medium tracking-tight">Podcast</span>
+      </button>
+
+      {/* 6. Cài đặt (Settings) */}
       <button
         onClick={() => onSelectTab('settings')}
         className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all cursor-pointer ${
