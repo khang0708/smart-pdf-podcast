@@ -285,6 +285,7 @@ export const App: React.FC = () => {
 
     syncService.pushBookMetadata(newBook).catch(e => console.warn(e));
     syncService.uploadPdfToCloud(newBook.id).catch(e => console.warn(e));
+    syncService.performSync().catch(() => {});
     await handleOpenBook(newBook);
   };
 
@@ -314,6 +315,7 @@ export const App: React.FC = () => {
 
     syncService.pushBookMetadata(driveBook).catch(e => console.warn(e));
     syncService.uploadPdfToCloud(driveBook.id).catch(e => console.warn(e));
+    syncService.performSync().catch(() => {});
     await handleOpenBook(driveBook);
   };
 

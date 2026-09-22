@@ -340,8 +340,12 @@ export default {
               INSERT INTO books (id, user_id, sync_room_id, title, author, file_size, total_pages, current_page, added_at, last_read_at, cover_data_url, is_favorite, storage_key, source, created_at, updated_at)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               ON CONFLICT(id) DO UPDATE SET
+                sync_room_id = excluded.sync_room_id,
+                user_id = COALESCE(excluded.user_id, books.user_id),
                 title = excluded.title,
                 author = excluded.author,
+                file_size = excluded.file_size,
+                total_pages = excluded.total_pages,
                 current_page = MAX(books.current_page, excluded.current_page),
                 last_read_at = MAX(books.last_read_at, excluded.last_read_at),
                 is_favorite = excluded.is_favorite,
@@ -363,6 +367,8 @@ export default {
               INSERT INTO bookmarks (id, book_id, user_id, sync_room_id, page_number, title, snippet, note, created_at)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
               ON CONFLICT(id) DO UPDATE SET
+                sync_room_id = excluded.sync_room_id,
+                user_id = COALESCE(excluded.user_id, bookmarks.user_id),
                 title = excluded.title,
                 snippet = excluded.snippet,
                 note = excluded.note
@@ -381,6 +387,8 @@ export default {
               INSERT INTO annotations (id, book_id, user_id, sync_room_id, page_number, quote, content, tags, color, created_at, updated_at)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               ON CONFLICT(id) DO UPDATE SET
+                sync_room_id = excluded.sync_room_id,
+                user_id = COALESCE(excluded.user_id, annotations.user_id),
                 quote = excluded.quote,
                 content = excluded.content,
                 tags = excluded.tags,

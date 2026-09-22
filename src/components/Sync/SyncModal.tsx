@@ -98,18 +98,18 @@ export const SyncModal: React.FC<SyncModalProps> = ({
   };
 
   // Generate a new pairing code
-  const handleGenerateNewPin = () => {
+  const handleGenerateNewPin = async () => {
     const newPin = 'AURORA-' + Math.floor(1000 + Math.random() * 9000);
     const updated = saveSyncConfig({ syncRoomId: newPin });
     setConfig(updated);
-    handleTriggerSync(newPin);
+    await handleTriggerSync(newPin);
   };
 
   // Connect to another device's PIN
   const handleConnectWithCode = async () => {
     const code = inputPairingCode.trim().toUpperCase();
     if (!code) {
-      setSyncFeedback('Vui lòng nhập mã kết nối của thiết bị kia.');
+      setSyncFeedback('Vui lòng nhập mã phòng của thiết bị kia.');
       return;
     }
     const updated = saveSyncConfig({ syncRoomId: code });
@@ -121,7 +121,8 @@ export const SyncModal: React.FC<SyncModalProps> = ({
   // Trigger sync with feedback
   const handleTriggerSync = async (roomIdOverride?: string) => {
     setSyncFeedback('Đang kết nối và đồng bộ đám mây...');
-    const res = await syncService.performSync();
+    const targetRoom = roomIdOverride || config.syncRoomId || null;
+    const res = await syncService.performSync(targetRoom);
     setSyncFeedback(res.message);
     if (res.success && onSyncComplete) {
       onSyncComplete();
@@ -391,11 +392,18 @@ export const SyncModal: React.FC<SyncModalProps> = ({
                 </div>
               </div>
 
-              {/* Box: Mã PIN của thiết bị hiện tại */}
+              {/* Box: Mã Phòng Đồng Bộ */}
               <div className="p-4 sm:p-5 rounded-2xl bg-[#0e1014] border border-[#252834] text-center space-y-3">
-                <span className="text-xs font-medium text-stone-400">Mã kết nối của thiết bị này:</span>
+                <div className="space-y-0.5">
+                  <span className="text-xs font-semibold text-white block">
+                    Mã phòng đồng bộ (Sync Room ID):
+                  </span>
+                  <span className="text-[11px] text-stone-400 block">
+                    Hai thiết bị (PC & Điện thoại) phải dùng chung mã này để sách tự động truyền qua lại
+                  </span>
+                </div>
                 
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-2 pt-1">
                   <span className="text-2xl sm:text-3xl font-mono font-bold tracking-widest text-[#e8a87c] bg-[#161822] px-4 py-2 rounded-xl border border-[#2a2e40] shadow-inner">
                     {config.syncRoomId || 'AURORA-8888'}
                   </span>
@@ -413,9 +421,10 @@ export const SyncModal: React.FC<SyncModalProps> = ({
                   <button
                     onClick={handleGenerateNewPin}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a1d26] hover:bg-[#252834] text-stone-400 hover:text-stone-200 text-xs font-medium transition-colors cursor-pointer border border-[#2b2f3d]"
+                    title="Tách máy này sang một phòng độc lập mới"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Tạo mã mới</span>
+                    <span>Tách phòng mới</span>
                   </button>
                 </div>
               </div>
@@ -423,7 +432,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               {/* Box: Nhập mã từ thiết bị khác */}
               <div className="space-y-2 pt-1">
                 <label className="text-xs font-semibold text-stone-300">
-                  Hoặc nhập mã từ thiết bị khác để liên kết:
+                  Nhập mã phòng từ thiết bị kia để ghép nối chung tủ sách:
                 </label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
@@ -437,7 +446,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
                     onClick={handleConnectWithCode}
                     className="px-4 py-2.5 rounded-xl bg-[#b2532a] hover:bg-[#9c441f] text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shadow-md"
                   >
-                    ⚡ Liên kết ngay
+                    ⚡ Ghép nối chung
                   </button>
                 </div>
               </div>

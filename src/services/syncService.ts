@@ -261,8 +261,9 @@ class SyncServiceClass {
   /**
    * Main 2-way sync function between local IndexedDB and Cloud (Cloudflare Edge or Supabase)
    */
-  public async performSync(): Promise<{ success: boolean; message: string; updatedBooks?: Book[] }> {
+  public async performSync(roomIdOverride?: string | null): Promise<{ success: boolean; message: string; updatedBooks?: Book[] }> {
     const config = loadSyncConfig();
+    const effectiveRoom = roomIdOverride !== undefined ? (roomIdOverride ? roomIdOverride.trim() : null) : (config.syncRoomId?.trim() || null);
 
     if (this.status.isSyncing) {
       return { success: false, message: 'Đang trong quá trình đồng bộ...' };
@@ -270,7 +271,7 @@ class SyncServiceClass {
 
     // High-speed Cloudflare Edge Sync (< 20ms)
     if (edgeApiService.isEdgeConfigured()) {
-      return this.performEdgeSync(config.syncRoomId?.trim() || null);
+      return this.performEdgeSync(effectiveRoom);
     }
 
     const client = getSupabaseClient();
@@ -427,12 +428,24 @@ class SyncServiceClass {
    * Push a single book metadata to Supabase
    */
   public async pushBookMetadata(book: Book, userId?: string | null, roomId?: string | null): Promise<void> {
+    const config = loadSyncConfig();
+    const effectiveRoomId = roomId !== undefined ? roomId : config.syncRoomId?.trim() || null;
+
+    // 1. Cloudflare Edge Push (< 15ms)
+    if (edgeApiService.isEdgeConfigured() && effectiveRoomId) {
+      try {
+        await edgeApiService.pushSync({ books: [book] }, effectiveRoomId);
+        return;
+      } catch (e) {
+        console.warn('Edge pushBookMetadata error:', e);
+      }
+    }
+
+    // 2. Supabase Fallback
     const client = getSupabaseClient();
     if (!client) return;
 
-    const config = loadSyncConfig();
     const effectiveUserId = userId !== undefined ? userId : (await client.auth.getSession()).data.session?.user?.id || null;
-    const effectiveRoomId = roomId !== undefined ? roomId : config.syncRoomId?.trim() || null;
 
     if (!effectiveUserId && !effectiveRoomId) return;
 
