@@ -152,7 +152,7 @@ export const BookList: React.FC<BookListProps> = ({
   };
 
   return (
-    <div className="flex-1 w-full h-full bg-[#e2e5e1] text-stone-900 overflow-y-auto px-4 sm:px-8 pt-4 pb-24 md:pb-5 flex flex-col justify-between select-none font-sans">
+    <div className="flex-1 w-full h-full bg-[#e2e5e1] text-stone-900 overflow-y-auto px-4 sm:px-8 pt-4 pb-28 sm:pb-20 flex flex-col gap-6 sm:gap-8 select-none font-sans">
       <input
         type="file"
         ref={fileInputRef}
@@ -162,8 +162,8 @@ export const BookList: React.FC<BookListProps> = ({
       />
 
       {/* ================= SECTION 1: THE DYNAMIC BOOKSHELF GALLERY ================= */}
-      <section className="relative overflow-x-auto pt-2 pb-6 -mx-4 sm:-mx-8 px-4 sm:px-8">
-        <div className="flex items-end gap-4 sm:gap-5 min-w-max pb-1 justify-start xl:justify-center">
+      <section className="shrink-0 relative overflow-x-auto pt-2 pb-6 -mx-4 sm:-mx-8 px-4 sm:px-8 scrollbar-none touch-pan-x">
+        <div className="flex items-end gap-3.5 sm:gap-5 min-w-max pb-1 justify-start xl:justify-center">
           
           {displayBooks.map((book, idx) => {
             const palette = getBookPalette(book, idx);
@@ -172,26 +172,31 @@ export const BookList: React.FC<BookListProps> = ({
             return (
               <div
                 key={book.id}
-                onClick={() => setSelectedBookId(book.id)}
+                onClick={() => {
+                  if (isSelected) {
+                    onOpenBook(book);
+                  } else {
+                    setSelectedBookId(book.id);
+                  }
+                }}
                 onDoubleClick={() => onOpenBook(book)}
-                className={`group relative flex flex-col items-center cursor-pointer transition-all duration-300 ${
-                  isSelected ? '-translate-y-3 scale-[1.02]' : 'hover:-translate-y-2'
+                className={`group relative flex flex-col items-center cursor-pointer transition-all duration-300 shrink-0 ${
+                  isSelected ? '-translate-y-2 sm:-translate-y-3 scale-[1.02]' : 'hover:-translate-y-1 sm:hover:-translate-y-2'
                 }`}
-                style={{ width: '175px' }}
-                title={`${book.title} - Nhấp để chọn, nhấp đúp để đọc`}
+                title={isSelected ? `${book.title} - Nhấp để mở đọc` : `${book.title} - Nhấp để chọn sách`}
               >
                 {/* Upright Hardcover Book Box with 3D Depth */}
                 <div
-                  className={`relative w-[175px] h-[260px] rounded-r-lg rounded-l-sm p-3.5 flex flex-col justify-between overflow-hidden shadow-2xl border ${palette.border}`}
+                  className={`relative w-[142px] h-[210px] sm:w-[175px] sm:h-[260px] rounded-r-lg rounded-l-sm p-3 sm:p-3.5 flex flex-col justify-between overflow-hidden shadow-xl sm:shadow-2xl border ${palette.border}`}
                   style={{
                     background: palette.bg,
                     boxShadow: isSelected
-                      ? '0 22px 36px -6px rgba(0,0,0,0.5), inset 4px 0 8px rgba(0,0,0,0.4)'
-                      : '0 18px 30px -6px rgba(0,0,0,0.38), inset 3px 0 6px rgba(0,0,0,0.25)'
+                      ? '0 20px 32px -4px rgba(0,0,0,0.5), inset 4px 0 8px rgba(0,0,0,0.4)'
+                      : '0 14px 24px -4px rgba(0,0,0,0.35), inset 3px 0 6px rgba(0,0,0,0.25)'
                   }}
                 >
                   {/* Left Spine 3D Curvature & Highlight */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-3.5 bg-gradient-to-r ${palette.spineGutter} pointer-events-none`} />
+                  <div className={`absolute left-0 top-0 bottom-0 w-3 sm:w-3.5 bg-gradient-to-r ${palette.spineGutter} pointer-events-none`} />
                   <div className={`absolute left-1 top-0 bottom-0 w-[1px] ${palette.spineHighlight} pointer-events-none`} />
 
                   {/* Render Book Cover: Image Thumbnail OR Procedural Atelier Cover */}
@@ -203,11 +208,11 @@ export const BookList: React.FC<BookListProps> = ({
                         className="w-full h-full object-cover" 
                       />
                       {/* Subdued overlay with title */}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent p-2.5 pt-8 text-center">
-                        <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-white line-clamp-2 leading-snug">
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent p-2 sm:p-2.5 pt-6 sm:pt-8 text-center">
+                        <h4 className="font-serif font-bold text-[11px] sm:text-xs uppercase tracking-wider text-white line-clamp-2 leading-snug">
                           {book.title}
                         </h4>
-                        <p className="text-[10px] font-sans text-stone-300 truncate mt-0.5">
+                        <p className="text-[9px] sm:text-[10px] font-sans text-stone-300 truncate mt-0.5">
                           {book.author || 'Tác giả'}
                         </p>
                       </div>
@@ -216,33 +221,33 @@ export const BookList: React.FC<BookListProps> = ({
                     <>
                       {/* Double Frame (if palette has one) */}
                       {palette.doubleFrame && (
-                        <div className={`absolute inset-2.5 border ${palette.doubleFrame} pointer-events-none`}>
-                          <div className={`absolute inset-[3px] border ${palette.innerFrame} pointer-events-none`} />
+                        <div className={`absolute inset-2 sm:inset-2.5 border ${palette.doubleFrame} pointer-events-none`}>
+                          <div className={`absolute inset-[2px] sm:inset-[3px] border ${palette.innerFrame} pointer-events-none`} />
                         </div>
                       )}
 
                       {/* Title Section */}
-                      <div className="text-center pt-3 relative z-10">
-                        <h3 className={`font-serif font-bold text-sm uppercase tracking-[0.16em] ${palette.titleColor} line-clamp-3 leading-snug drop-shadow-sm`}>
+                      <div className="text-center pt-2 sm:pt-3 relative z-10">
+                        <h3 className={`font-serif font-bold text-xs sm:text-sm uppercase tracking-[0.14em] sm:tracking-[0.16em] ${palette.titleColor} line-clamp-3 leading-snug drop-shadow-sm`}>
                           {book.title}
                         </h3>
                         {/* Thin Divider for Terracotta theme */}
                         {palette.divider && (
-                          <div className={`w-[1px] h-8 ${palette.divider} mx-auto my-2.5`} />
+                          <div className={`w-[1px] h-6 sm:h-8 ${palette.divider} mx-auto my-2 sm:my-2.5`} />
                         )}
                       </div>
 
                       {/* Center Emblem / Motif */}
-                      <div className="flex justify-center my-auto relative z-10 opacity-90">
+                      <div className="flex justify-center my-auto relative z-10 opacity-90 scale-90 sm:scale-100">
                         {palette.hasFeather && (
-                          <svg className="w-11 h-11 text-[#832626] fill-current" viewBox="0 0 100 100">
+                          <svg className="w-9 h-9 sm:w-11 sm:h-11 text-[#832626] fill-current" viewBox="0 0 100 100">
                             <path d="M78 12 C55 18 36 38 30 62 C29 65 31 66 33 64 C38 58 45 52 54 48 C49 53 45 60 42 68 C41 71 43 72 45 70 C51 63 60 57 70 53 C64 60 60 69 57 79 L48 94 C47 96 49 98 51 96 L61 80 C68 68 76 56 82 42 C87 31 87 20 78 12 Z" />
                             <path d="M48 94 Q62 55 78 12" stroke="#4a1515" strokeWidth="2.5" fill="none" />
                           </svg>
                         )}
 
                         {palette.hasTreeStag && (
-                          <svg className="w-16 h-16 text-[#1c2820] stroke-current fill-none" viewBox="0 0 100 100">
+                          <svg className="w-13 h-13 sm:w-16 sm:h-16 text-[#1c2820] stroke-current fill-none" viewBox="0 0 100 100">
                             <path strokeWidth="1.8" strokeLinecap="round" d="M36 84 L36 50 C36 40 31 32 22 22 M36 50 C40 38 46 30 52 18 M36 58 L20 42 M36 46 L44 34 M28 30 L16 28 M42 40 L50 46 M39 30 L45 23 M25 24 L20 18 M50 20 L54 14" />
                             <path strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" d="M60 84 L61 66 L64 60 L73 60 L76 66 L76 84 M64 60 L66 48 L70 43 L73 43 L71 50 L73 60" />
                             <path strokeWidth="1.3" strokeLinecap="round" d="M70 43 L68 32 L64 28 M68 36 L71 31 M72 43 L74 33 L78 29 M74 36 L77 32" />
@@ -251,47 +256,61 @@ export const BookList: React.FC<BookListProps> = ({
                         )}
 
                         {!palette.hasFeather && !palette.hasTreeStag && (
-                          <div className="w-8 h-8 rounded-full border border-current/30 flex items-center justify-center font-serif text-[11px]">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-current/30 flex items-center justify-center font-serif text-[10px] sm:text-[11px]">
                             {book.title.slice(0, 2).toUpperCase()}
                           </div>
                         )}
                       </div>
 
                       {/* Author */}
-                      <div className="text-center pb-2 relative z-10">
-                        <span className={`text-xs font-serif tracking-wider truncate block max-w-[140px] mx-auto ${palette.authorColor}`}>
+                      <div className="text-center pb-1.5 sm:pb-2 relative z-10">
+                        <span className={`text-[10px] sm:text-xs font-serif tracking-wider truncate block max-w-[110px] sm:max-w-[140px] mx-auto ${palette.authorColor}`}>
                           {book.author || 'Tác giả'}
                         </span>
                       </div>
                     </>
                   )}
 
-                  {/* Top Hover Action Overlay (Delete & Favorite) */}
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 z-20">
-                    <button
-                      onClick={(e) => onToggleFavorite(book.id, e)}
-                      className="p-1 rounded-full bg-black/50 hover:bg-black/80 text-white transition-colors cursor-pointer"
-                      title={book.isFavorite ? 'Bỏ yêu thích' : 'Yêu thích'}
-                    >
-                      <Heart className={`w-3 h-3 ${book.isFavorite ? 'fill-[#b2532a] text-[#b2532a]' : 'text-white'}`} />
-                    </button>
-                    <button
-                      onClick={(e) => onDeleteBook(book.id, e)}
-                      className="p-1 rounded-full bg-black/50 hover:bg-red-600 text-white transition-colors cursor-pointer"
-                      title="Xóa sách"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  {/* Active Selected Glow Ring */}
+                  {/* Active Selected Glow Border */}
                   {isSelected && (
-                    <div className="absolute inset-0 border-2 border-white/60 rounded-r-lg rounded-l-sm pointer-events-none" />
+                    <div className="absolute inset-0 border-2 border-[#b2532a] rounded-r-lg rounded-l-sm pointer-events-none shadow-[inset_0_0_10px_rgba(178,83,42,0.35)]" />
+                  )}
+                </div>
+
+                {/* Selected Status & Action Pill */}
+                <div className="h-6 flex items-center justify-center gap-1.5 mt-1.5">
+                  {isSelected && (
+                    <>
+                      <div className="px-2.5 py-0.5 rounded-full bg-[#b2532a] text-white text-[9px] font-mono font-semibold shadow-sm flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                        <span>Đang chọn</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleFavorite(book.id, e);
+                        }}
+                        className="p-1 rounded-full bg-[#181a24] hover:bg-[#252834] text-white border border-[#2b2f40] shadow-sm transition-colors cursor-pointer"
+                        title={book.isFavorite ? 'Bỏ yêu thích' : 'Yêu thích'}
+                      >
+                        <Heart className={`w-3 h-3 ${book.isFavorite ? 'fill-[#b2532a] text-[#b2532a]' : 'text-stone-300'}`} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteBook(book.id, e);
+                        }}
+                        className="p-1 rounded-full bg-[#181a24] hover:bg-red-600 text-white border border-[#2b2f40] shadow-sm transition-colors cursor-pointer"
+                        title="Xóa sách"
+                      >
+                        <Trash2 className="w-3 h-3 text-stone-300 hover:text-white" />
+                      </button>
+                    </>
                   )}
                 </div>
 
                 {/* Ground Ellipse Shadow */}
-                <div className="w-36 h-2.5 bg-black/25 rounded-full blur-[4px] mt-2" />
+                <div className="w-28 sm:w-36 h-2 sm:h-2.5 bg-black/25 rounded-full blur-[4px] mt-0.5" />
               </div>
             );
           })}
@@ -300,7 +319,7 @@ export const BookList: React.FC<BookListProps> = ({
       </section>
 
       {/* ================= SECTION 2: DYNAMIC CONTINUED READING & OPEN BOOK ================= */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end pb-10">
+      <section className="shrink-0 grid grid-cols-1 lg:grid-cols-12 gap-6 items-end pb-8">
         
         {/* Left Column: Continued Reading with REAL Data */}
         <div className="lg:col-span-4 space-y-3 pb-3">
