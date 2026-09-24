@@ -3,6 +3,8 @@ import re
 from typing import List, Dict, Any, Optional
 import fitz  # PyMuPDF
 
+from .text_cleaner import normalize_vietnamese_text
+
 class PDFExtractor:
     """
     Trích xuất nội dung văn bản có cấu trúc từ file PDF.
@@ -20,18 +22,18 @@ class PDFExtractor:
         """
         doc = fitz.open(self.pdf_path)
         meta = doc.metadata or {}
-        title = meta.get("title") or os.path.splitext(os.path.basename(self.pdf_path))[0]
-        author = meta.get("author") or "Tác giả ẩn danh"
+        raw_title = meta.get("title") or os.path.splitext(os.path.basename(self.pdf_path))[0]
+        title = normalize_vietnamese_text(raw_title)
+        author = normalize_vietnamese_text(meta.get("author") or "Tác giả ẩn danh")
         
         # 1. Trích xuất TOC (Bookmarks / Mục lục nhúng trong PDF)
-        # Format trả về của doc.get_toc(): [[lvl, title, page_number], ...]
         raw_toc = doc.get_toc()
         toc = []
         for item in raw_toc:
             if len(item) >= 3:
                 toc.append({
                     "level": item[0],
-                    "title": item[1].strip(),
+                    "title": normalize_vietnamese_text(item[1].strip()),
                     "page": item[2]
                 })
 
@@ -44,7 +46,7 @@ class PDFExtractor:
             # Sử dụng pymupdf4llm với page_chunks=True để lưu trữ metadata từng trang
             page_data_list = pymupdf4llm.to_markdown(self.pdf_path, page_chunks=True)
             for idx, pdata in enumerate(page_data_list):
-                page_text = pdata.get("text", "")
+                page_text = normalize_vietnamese_text(pdata.get("text", ""))
                 pages_content.append({
                     "page_num": idx + 1,
                     "markdown": page_text
@@ -55,7 +57,7 @@ class PDFExtractor:
             print(f"[PDFExtractor] pymupdf4llm fallback (lý do: {e}), sử dụng fitz thuần...")
             for page_index in range(len(doc)):
                 page = doc[page_index]
-                text = page.get_text("text")
+                text = normalize_vietnamese_text(page.get_text("text"))
                 pages_content.append({
                     "page_num": page_index + 1,
                     "markdown": text

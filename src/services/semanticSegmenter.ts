@@ -3,6 +3,8 @@
  * Tối ưu hoá phân tách câu và ngữ nghĩa cho Text-to-Speech đọc sách như Podcast
  */
 
+import { normalizeVietnameseText } from './vietnameseUtils';
+
 export interface SemanticSentence {
   index: number;
   text: string;
@@ -32,8 +34,11 @@ export const SemanticSegmenter = {
       return [];
     }
 
+    // 0. Chuẩn hoá tiếng Việt (TCVN3, khử tách dấu NFD, đưa về NFC)
+    let text = normalizeVietnameseText(rawText);
+
     // 1. Chuẩn hoá khoảng trắng và xuống dòng
-    let text = rawText
+    text = text
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n');
 
@@ -128,10 +133,11 @@ export const SemanticSegmenter = {
    * Bỏ các ký tự đặc biệt gây lỗi đọc vấp (gạch chéo vô nghĩa, ngoặc vuông, v.v.)
    */
   prepareForSpeech(text: string): string {
-    return text
+    const cleaned = text
       .replace(/\[\d+\]/g, '') // Bỏ chú thích như [1], [2]
       .replace(/[*_~`#]/g, '') // Bỏ định dạng markdown
       .replace(/\s+/g, ' ')
       .trim();
+    return normalizeVietnameseText(cleaned);
   }
 };

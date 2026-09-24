@@ -12,13 +12,15 @@ if hasattr(sys.stdout, 'reconfigure'):
     except Exception:
         pass
 
+import unicodedata
 from fastapi import FastAPI, UploadFile, File, Form, BackgroundTasks, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .pipeline import PodcastPipeline
-from .tts_synthesizer import SPEAKERS
+from .tts_synthesizer import SPEAKERS, TTSSynthesizer
 
 app = FastAPI(
     title="Aurora Podcast Engine API",
@@ -77,6 +79,27 @@ def get_speakers():
         }
         for spk_id, info in SPEAKERS.items()
     ]
+
+_realtime_synth = None
+
+def get_realtime_synthesizer(speaker: str = "NF"):
+    global _realtime_synth
+    if _realtime_synth is None:
+        _realtime_synth = TTSSynthesizer(default_speaker=speaker)
+    return _realtime_synth
+
+@app.get("/api/tts/speak")
+@app.head("/api/tts/speak")
+def speak_sentence(text: str = "", speaker: str = "NF"):
+    """
+    Sinh file âm thanh trực tiếp cho câu ngắn để đọc sách thời gian thực (Reader TTS).
+    """
+    if not text or not text.strip():
+        return {"status": "ok"}
+    clean_text = unicodedata.normalize('NFC', text.strip())
+    synth = get_realtime_synthesizer(speaker)
+    wav_path = synth.synthesize_chunk(clean_text, speaker=speaker)
+    return FileResponse(wav_path, media_type="audio/wav")
 
 def _run_pipeline_job(job_id: str, pdf_path: str, book_id: str, speaker: str, enable_bgm: bool, custom_title: Optional[str] = None):
     try:

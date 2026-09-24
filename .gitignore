@@ -58,3 +58,5 @@ podcast_engine/.cache/
 podcast_engine/v_tts_src/
 podcast_engine/sample_test_book.pdf
 *.wav
+__pycache__/
+*.pyc

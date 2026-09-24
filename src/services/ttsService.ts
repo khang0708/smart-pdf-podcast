@@ -1,5 +1,7 @@
 import { TTSState } from '../types';
 import { SemanticSegmenter } from './semanticSegmenter';
+import { normalizeVietnameseText, isVietnameseText } from './vietnameseUtils';
+import { getPodcastApiBase } from './podcastService';
 
 type TTSCallback = {
   onSentenceStart?: (index: number, text: string) => void;
@@ -75,7 +77,13 @@ class TTSService {
     if (!voices || voices.length === 0) return null;
 
     // Prioritize high-quality Vietnamese voices: Google Tiếng Việt, Microsoft HoaiMy/NamMinh, Apple Linh/An
-    const viVoices = voices.filter(v => v.lang.toLowerCase().startsWith('vi') || v.lang.includes('VIE'));
+    const viVoices = voices.filter(v => 
+      v.lang.toLowerCase().startsWith('vi') || 
+      v.lang.toLowerCase().includes('vie') ||
+      v.name.toLowerCase().includes('vietnam') ||
+      v.name.toLowerCase().includes('tiếng việt')
+    );
+
     const preferredVi = viVoices.find(v => 
       v.name.includes('Google') || 
       v.name.includes('Linh') || 
@@ -188,25 +196,46 @@ class TTSService {
   }
 
   /**
-   * Phát âm bằng giọng AI tự nhiên chuẩn phát thanh viên (Online Natural Neural Stream)
+   * Phát âm bằng giọng AI tự nhiên chuẩn phát thanh viên (Online Natural Neural Stream hoặc Local Valtec-TTS Worker)
    */
-  private speakWithAINatural(text: string) {
+  private async speakWithAINatural(text: string) {
     if (!this.audioPlayer) {
       this.speakWithSystemSynthesis(text);
       return;
     }
+
+    const normalized = normalizeVietnameseText(text);
 
     // Stop previous audio
     this.audioPlayer.pause();
     this.audioPlayer.currentTime = 0;
     if (this.synth) this.synth.cancel();
 
-    // Determine language prefix
-    const isVietnamese = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(text);
-    const lang = isVietnamese ? 'vi' : 'en';
+    // 1. Thử gọi Local Valtec-TTS Worker nếu online trên cổng 8765
+    const base = getPodcastApiBase();
+    if (base && (base.includes('127.0.0.1') || base.includes('localhost') || base.startsWith('http'))) {
+      try {
+        const valtecUrl = `${base}/api/tts/speak?text=${encodeURIComponent(normalized)}&speaker=NF`;
+        // Kiểm tra nhanh worker
+        const res = await fetch(valtecUrl, { method: 'HEAD' }).catch(() => null);
+        if (res && res.ok) {
+          this.audioPlayer.src = valtecUrl;
+          this.audioPlayer.playbackRate = this.rate;
+          await this.audioPlayer.play();
+          return;
+        }
+      } catch (err) {
+        // Fallback to Google Stream
+      }
+    }
 
-    // Google Translate Natural Neural Stream
-    const encoded = encodeURIComponent(text);
+    // 2. Google Translate Natural Neural Stream
+    const isVi = isVietnameseText(normalized);
+    const lang = isVi ? 'vi' : 'en';
+
+    // Đảm bảo độ dài chunk không vượt ngưỡng 180 ký tự để Google không trả lỗi 404
+    const speechChunk = normalized.length > 180 ? normalized.slice(0, 180) : normalized;
+    const encoded = encodeURIComponent(speechChunk);
     const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encoded}`;
 
     this.audioPlayer.src = audioUrl;
@@ -214,7 +243,7 @@ class TTSService {
     
     this.audioPlayer.play().catch((err) => {
       console.warn('AI Audio play interrupted or blocked, fallback to system synth:', err);
-      this.speakWithSystemSynthesis(text);
+      this.speakWithSystemSynthesis(normalized);
     });
   }
 
@@ -226,15 +255,19 @@ class TTSService {
     this.synth.cancel();
     if (this.audioPlayer) this.audioPlayer.pause();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const normalized = normalizeVietnameseText(text);
+    const isVi = isVietnameseText(normalized);
+
+    const utterance = new SpeechSynthesisUtterance(normalized);
     this.currentUtterance = utterance;
     utterance.rate = this.rate;
     utterance.pitch = this.pitch;
+    utterance.lang = isVi ? 'vi-VN' : 'en-US';
 
     const voices = this.getVoices();
     let voice = voices.find(v => v.voiceURI === this.selectedVoiceURI);
     if (!voice) {
-      voice = this.autoSelectVoice() || undefined;
+      voice = this.autoSelectVoice(isVi ? 'vi' : 'en') || undefined;
     }
     if (voice) {
       utterance.voice = voice;

@@ -2,6 +2,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { PageTextData } from '../types';
 import { SemanticSegmenter } from './semanticSegmenter';
+import { normalizeVietnameseText } from './vietnameseUtils';
 
 // Set up worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
@@ -85,11 +86,15 @@ export const PdfService = {
     const textContent = await page.getTextContent();
     
     // Filter valid text items with spatial coordinates
-    type RawTextItem = { str: string; transform: number[] };
+    type RawTextItem = { str: string; transform: number[]; width: number };
     const validItems: RawTextItem[] = [];
     for (const item of textContent.items) {
       if ('str' in item && typeof item.str === 'string' && Array.isArray((item as any).transform)) {
-        validItems.push(item as RawTextItem);
+        validItems.push({
+          str: item.str,
+          transform: (item as any).transform,
+          width: typeof (item as any).width === 'number' ? (item as any).width : 0
+        });
       }
     }
 
@@ -111,6 +116,39 @@ export const PdfService = {
       return a.transform[4] - b.transform[4];
     });
 
+    const buildLineString = (items: RawTextItem[]): string => {
+      // Sắp xếp các ký tự/cụm từ trên cùng dòng theo trục hoành X từ trái sang phải
+      items.sort((a, b) => a.transform[4] - b.transform[4]);
+
+      let result = '';
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (!it.str) continue;
+
+        if (i > 0 && result.length > 0) {
+          const prev = items[i - 1];
+          const prevRightX = prev.transform[4] + prev.width;
+          const currLeftX = it.transform[4];
+          const xGap = currLeftX - prevRightX;
+
+          // Kiểm tra nếu là dấu thanh tổ hợp thì không được chèn khoảng trắng
+          const isCombiningDiacritic = /^[\u0300-\u036F]/.test(it.str.trim());
+
+          // Chỉ chèn dấu cách khi có khoảng trống từ rõ rệt (> 2.5px) và không phải dấu tổ hợp
+          if (
+            !isCombiningDiacritic &&
+            xGap > 2.5 &&
+            !result.endsWith(' ') &&
+            !it.str.startsWith(' ')
+          ) {
+            result += ' ';
+          }
+        }
+        result += it.str;
+      }
+      return normalizeVietnameseText(result.trim());
+    };
+
     // Group items into visual lines
     const lines: { y: number; text: string }[] = [];
     let currentLineItems: RawTextItem[] = [];
@@ -124,17 +162,9 @@ export const PdfService = {
       } else if (Math.abs(y - currentLineY) <= 4) {
         currentLineItems.push(item);
       } else {
-        // Construct line string ensuring spaces between words
-        let lineText = '';
-        for (const it of currentLineItems) {
-          if (!it.str) continue;
-          if (lineText.length > 0 && !lineText.endsWith(' ') && !it.str.startsWith(' ')) {
-            lineText += ' ';
-          }
-          lineText += it.str;
-        }
-        if (lineText.trim()) {
-          lines.push({ y: currentLineY, text: lineText.trim() });
+        const lineText = buildLineString(currentLineItems);
+        if (lineText) {
+          lines.push({ y: currentLineY, text: lineText });
         }
         currentLineItems = [item];
         currentLineY = y;
@@ -142,21 +172,14 @@ export const PdfService = {
     }
 
     if (currentLineItems.length > 0 && currentLineY !== null) {
-      let lineText = '';
-      for (const it of currentLineItems) {
-        if (!it.str) continue;
-        if (lineText.length > 0 && !lineText.endsWith(' ') && !it.str.startsWith(' ')) {
-          lineText += ' ';
-        }
-        lineText += it.str;
-      }
-      if (lineText.trim()) {
-        lines.push({ y: currentLineY, text: lineText.trim() });
+      const lineText = buildLineString(currentLineItems);
+      if (lineText) {
+        lines.push({ y: currentLineY, text: lineText });
       }
     }
 
     // Raw complete text preserving line breaks
-    const fullText = lines.map(l => l.text).join('\n');
+    const fullText = normalizeVietnameseText(lines.map(l => l.text).join('\n'));
 
     // Calculate line gaps to detect natural paragraph breaks
     const gaps: number[] = [];
